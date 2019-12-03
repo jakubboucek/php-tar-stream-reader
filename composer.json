@@ -1,0 +1,11 @@
+{
+    "require": {
+        "php": ">=7.4",
+        "ext-zlib": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tar\\": "libs/Tar/"
+        }
+    }
+}
