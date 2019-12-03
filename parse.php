@@ -24,7 +24,7 @@ $archiveFile = $argv[1];
 $reader = new ArchiveReader($archiveFile);
 
 foreach ($reader as $file) {
-    echo $file->getSize() . "\t" . $file->getName() . PHP_EOL;
+    echo $file->getSize() . "\t" . $file->getName() . "\t" . memory_get_usage() . PHP_EOL;
     //$file->getContent();
 }
 
