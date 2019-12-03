@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-use Tar\FileReader;
+use Tar\ArchiveReader;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -21,7 +21,7 @@ if ($argc < 2) {
 //$archiveFile = __DIR__ . '/source/ares_vreo_all.tar.gz';
 $archiveFile = $argv[1];
 
-$reader = new FileReader($archiveFile);
+$reader = new ArchiveReader($archiveFile);
 
 foreach ($reader as $file) {
     echo $file->getSize() . "\t" . $file->getName() . PHP_EOL;

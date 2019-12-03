@@ -5,28 +5,33 @@ namespace Tar;
 
 use Iterator;
 use RuntimeException;
+use Tar\FileHandler\IHandler;
 
-class FileIterator implements Iterator
+class ArchiveIterator implements Iterator
 {
     /** @var resource */
     private $handle;
     
     private ?FileInfo $currentFile;
 
-    public function __construct(string $file)
+    private IHandler $fileHandler;
+
+    public function __construct(string $file, IHandler $fileHandler)
     {
-        $handle = gzopen($file, 'rb', 0);
+
+        $handle = $fileHandler->open($file);
 
         if (is_resource($handle) === false) {
             throw new RuntimeException("Unable to open file \'{$file}\'");
         }
 
         $this->handle = $handle;
+        $this->fileHandler = $fileHandler;
     }
 
     public function __destruct()
     {
-        gzclose($this->handle);
+        $this->fileHandler->close($this->handle);
     }
 
 
