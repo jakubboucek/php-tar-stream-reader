@@ -24,7 +24,7 @@ class ArchiveReader implements IteratorAggregate
 
     public function getIterator(): ArchiveIterator
     {
-        $handler = $this->isGzipped($this->file)?new GzFileHandler():new TarFileHandler();
+        $handler = $this->isGzipped($this->file) ? new GzFileHandler() : new TarFileHandler();
 
         return new ArchiveIterator($this->file, $handler);
     }

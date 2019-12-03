@@ -11,7 +11,7 @@ class ArchiveIterator implements Iterator
 {
     /** @var resource */
     private $handle;
-    
+
     private ?FileInfo $currentFile;
 
     private IHandler $fileHandler;
@@ -35,7 +35,7 @@ class ArchiveIterator implements Iterator
     }
 
 
-    public function rewind():void
+    public function rewind(): void
     {
         fseek($this->handle, 0);
         $this->next();
@@ -45,23 +45,23 @@ class ArchiveIterator implements Iterator
     {
         $this->currentFile = null;
 
-        if(feof($this->handle)) {
+        if (feof($this->handle)) {
             return;
         }
 
         $position = ftell($this->handle);
 
         $headerData = fread($this->handle, 512);
-        if(strlen($headerData) < 512) {
+        if (strlen($headerData) < 512) {
             trigger_error(sprintf('Unexpected end of file, returned non-block size: %d bytes', strlen($headerData)));
             return;
         }
 
         $header = new Header($headerData);
         unset($headerData);
-        if($header->isValid() === false) {
+        if ($header->isValid() === false) {
             // Tar format insert few blocks of nulls to EOF - check if already nulls or corrupted
-            if($header->isNullFilled() === false) {
+            if ($header->isNullFilled() === false) {
                 throw new RuntimeException("Invalid data Tar header format in block position: $position bytes");
             }
             return;
@@ -71,10 +71,13 @@ class ArchiveIterator implements Iterator
         $contentBlockSize = $contentSize + (($contentSize % 512) === 0 ? 0 : 512 - ($contentSize % 512));
 
         $content = '';
-        if($contentBlockSize > 0) {
-            $blockContent =  fread($this->handle, $contentBlockSize);
-            if(strlen($blockContent) < $contentBlockSize) {
-                throw new RuntimeException(sprintf('Unexpected end of file, returned non-block size: %d bytes', strlen($blockContent)));
+        if ($contentBlockSize > 0) {
+            $blockContent = fread($this->handle, $contentBlockSize);
+            if (strlen($blockContent) < $contentBlockSize) {
+                throw new RuntimeException(sprintf(
+                    'Unexpected end of file, returned non-block size: %d bytes',
+                    strlen($blockContent)
+                ));
             }
             $content = substr($blockContent, 0, $contentSize);
             unset($blockContent);
@@ -83,7 +86,7 @@ class ArchiveIterator implements Iterator
         $this->currentFile = new FileInfo($header, $content);
     }
 
-    public function valid():bool
+    public function valid(): bool
     {
         return $this->currentFile !== null;
     }

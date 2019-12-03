@@ -65,7 +65,7 @@ class Header
     public function getSize(): int
     {
         $str = rtrim(substr($this->content, 124, 12));
-        if(preg_match('/^[0-7]+$/D', $str) !== 1) {
+        if (preg_match('/^[0-7]+$/D', $str) !== 1) {
             throw new RuntimeException(sprintf(
                 "Invalid Tar header format, file size must be octal number, '%s' got instead",
                 $str
