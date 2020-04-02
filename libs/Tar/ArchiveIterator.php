@@ -23,10 +23,6 @@ class ArchiveIterator implements Iterator
     {
         $handle = $fileHandler->open($file);
 
-        if (is_resource($handle) === false) {
-            throw new RuntimeException("Unable to open file \'{$file}\'");
-        }
-
         $this->handle = $handle;
         $this->fileHandler = $fileHandler;
     }
