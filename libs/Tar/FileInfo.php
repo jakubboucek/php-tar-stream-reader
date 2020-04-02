@@ -6,8 +6,10 @@ namespace Tar;
 
 class FileInfo
 {
-    private Header $header;
-    private string $content;
+    /** @var Header */
+    private $header;
+    /** @var string */
+    private $content;
 
     public function __construct(Header $header, string $content)
     {

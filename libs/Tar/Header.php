@@ -35,7 +35,8 @@ use RuntimeException;
 
 class Header
 {
-    private string $content;
+    /** @var string */
+    private $content;
 
     public function __construct(string $content)
     {

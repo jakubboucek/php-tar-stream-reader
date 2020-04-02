@@ -12,7 +12,7 @@ use Tar\FileHandler\TarFileHandler;
 class ArchiveReader implements IteratorAggregate
 {
     /** @var string */
-    private string $file;
+    private $file;
 
     public function __construct(string $file)
     {

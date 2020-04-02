@@ -13,9 +13,11 @@ class ArchiveIterator implements Iterator
     /** @var resource */
     private $handle;
 
-    private ?FileInfo $currentFile;
+    /** @var FileInfo|null */
+    private $currentFile;
 
-    private IHandler $fileHandler;
+    /** @var IHandler */
+    private $fileHandler;
 
     public function __construct(string $file, IHandler $fileHandler)
     {
