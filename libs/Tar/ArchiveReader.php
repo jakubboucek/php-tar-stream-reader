@@ -9,6 +9,9 @@ use RuntimeException;
 use Tar\FileHandler\GzFileHandler;
 use Tar\FileHandler\TarFileHandler;
 
+/**
+ * @implements IteratorAggregate<FileInfo>
+ */
 class ArchiveReader implements IteratorAggregate
 {
     /** @var string */

@@ -8,6 +8,9 @@ use Iterator;
 use RuntimeException;
 use Tar\FileHandler\IHandler;
 
+/**
+ * @implements Iterator<FileInfo>
+ */
 class ArchiveIterator implements Iterator
 {
     /** @var resource */
