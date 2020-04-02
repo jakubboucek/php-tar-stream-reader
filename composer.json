@@ -7,5 +7,8 @@
         "psr-4": {
             "Tar\\": "libs/Tar/"
         }
+    },
+    "scripts": {
+        "phpstan": "docker run --rm -v `pwd`:/www phpstan/phpstan analyse -c /www/phpstan.neon --level 5"
     }
 }

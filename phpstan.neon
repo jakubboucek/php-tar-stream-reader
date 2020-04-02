@@ -1,0 +1,5 @@
+parameters:
+    paths:
+        - libs
+    autoload_directories:
+        - libs
