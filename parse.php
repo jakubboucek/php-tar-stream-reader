@@ -1,9 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 use Tar\ArchiveReader;
 
-require __DIR__.'/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 if (PHP_SAPI !== 'cli') {
     http_response_code(400);
@@ -13,7 +14,7 @@ if (PHP_SAPI !== 'cli') {
 
 // Parse & validate command arguments
 if ($argc < 2) {
-    throw new \RuntimeException(sprintf('Usage: %s <file>', basename(__FILE__)));
+    throw new RuntimeException(sprintf('Usage: %s <file>', basename(__FILE__)));
 }
 
 
@@ -27,4 +28,3 @@ foreach ($reader as $file) {
     echo $file->getSize() . "\t" . $file->getName() . "\t" . memory_get_usage() . PHP_EOL;
     //$file->getContent();
 }
-

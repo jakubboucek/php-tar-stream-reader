@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tar;
@@ -18,7 +19,6 @@ class ArchiveIterator implements Iterator
 
     public function __construct(string $file, IHandler $fileHandler)
     {
-
         $handle = $fileHandler->open($file);
 
         if (is_resource($handle) === false) {
@@ -74,10 +74,12 @@ class ArchiveIterator implements Iterator
         if ($contentBlockSize > 0) {
             $blockContent = fread($this->handle, $contentBlockSize);
             if (strlen($blockContent) < $contentBlockSize) {
-                throw new RuntimeException(sprintf(
-                    'Unexpected end of file, returned non-block size: %d bytes',
-                    strlen($blockContent)
-                ));
+                throw new RuntimeException(
+                    sprintf(
+                        'Unexpected end of file, returned non-block size: %d bytes',
+                        strlen($blockContent)
+                    )
+                );
             }
             $content = substr($blockContent, 0, $contentSize);
             unset($blockContent);
