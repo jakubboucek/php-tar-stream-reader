@@ -22,7 +22,7 @@ if ($argc < 2) {
 //$archiveFile = __DIR__ . '/source/ares_vreo_all.tar.gz';
 $archiveFile = $argv[1];
 
-$reader = new ArchiveReader($archiveFile);
+$reader = new ArchiveReader($archiveFile, ArchiveReader::MODE_SCAN_FILES);
 
 foreach ($reader as $file) {
     echo $file->getSize() . "\t" . $file->getName() . "\t" . memory_get_usage() . PHP_EOL;

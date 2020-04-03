@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Tar;
 
+use LogicException;
+
 class FileInfo
 {
     /** @var Header */
     private $header;
-    /** @var string */
+
+    /** @var string|null */
     private $content;
 
-    public function __construct(Header $header, string $content)
+    public function __construct(Header $header, ?string $content)
     {
         $this->content = $content;
         $this->header = $header;
@@ -44,6 +47,9 @@ class FileInfo
 
     public function getContent(): string
     {
+        if($this->content === null) {
+            throw new LogicException('Unable to read file content because scan-only mode');
+        }
         return $this->content;
     }
 }

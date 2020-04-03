@@ -22,19 +22,22 @@ class ArchiveIterator implements Iterator
     /** @var IHandler */
     private $fileHandler;
 
-    public function __construct(string $file, IHandler $fileHandler)
+    /** @var bool */
+    private $readContent;
+
+    public function __construct(string $file, IHandler $fileHandler, bool $readContent = true)
     {
         $handle = $fileHandler->open($file);
 
         $this->handle = $handle;
         $this->fileHandler = $fileHandler;
+        $this->readContent = $readContent;
     }
 
     public function __destruct()
     {
         $this->fileHandler->close($this->handle);
     }
-
 
     public function rewind(): void
     {
@@ -73,17 +76,22 @@ class ArchiveIterator implements Iterator
 
         $content = '';
         if ($contentBlockSize > 0) {
-            $blockContent = fread($this->handle, $contentBlockSize);
-            if (strlen($blockContent) < $contentBlockSize) {
-                throw new RuntimeException(
-                    sprintf(
-                        'Unexpected end of file, returned non-block size: %d bytes',
-                        strlen($blockContent)
-                    )
-                );
+            if ($this->readContent) {
+                $blockContent = fread($this->handle, $contentBlockSize);
+                if (strlen($blockContent) < $contentBlockSize) {
+                    throw new RuntimeException(
+                        sprintf(
+                            'Unexpected end of file, returned non-block size: %d bytes',
+                            strlen($blockContent)
+                        )
+                    );
+                }
+                $content = substr($blockContent, 0, $contentSize);
+                unset($blockContent);
+            } else {
+                $content = null;
+                fseek($this->handle, $contentBlockSize, SEEK_CUR);
             }
-            $content = substr($blockContent, 0, $contentSize);
-            unset($blockContent);
         }
 
         $this->currentFile = new FileInfo($header, $content);
