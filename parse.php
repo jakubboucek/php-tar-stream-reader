@@ -24,7 +24,15 @@ $archiveFile = $argv[1];
 
 $reader = new ArchiveReader($archiveFile, ArchiveReader::MODE_SCAN_FILES);
 
+
+echo sprintf("%10s\t%10s\t%4s\t%s\n", 'File size', 'Memory', 'Type', 'File name');
 foreach ($reader as $file) {
-    echo $file->getSize() . "\t" . $file->getName() . "\t" . memory_get_usage() . PHP_EOL;
+    echo sprintf(
+        "%10d\t%10d\t%4s\t%s\n",
+        $file->getSize(),
+        memory_get_usage(),
+        $file->isDir() ? 'dir' : 'file',
+        $file->getName()
+    );
     //$file->getContent();
 }
