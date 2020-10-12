@@ -2,35 +2,35 @@
 
 declare(strict_types=1);
 
-namespace Tar;
+namespace JakubBoucek\Tar\Parser;
 
-use InvalidArgumentException;
-use RuntimeException;
+use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
+use JakubBoucek\Tar\Exception\InvalidArgumentException;
 
 /*
-* TAR HEADER FORMAT
-* POSIX header
-*
-* struct posix_header
-* {                             // byte offset
-*      char name[100];          //   0
-*      char mode[8];            // 100
-*      char uid[8];             // 108
-*      char gid[8];             // 116
-*      char size[12];           // 124
-*      char mtime[12];          // 136
-*      char chksum[8];          // 148
-*      char typeflag;           // 156
-*      char linkname[100];      // 157
-*      char magic[6];           // 257
-*      char version[2];         // 263
-*      char uname[32];          // 265
-*      char gname[32];          // 297
-*      char devmajor[8];        // 329
-*      char devminor[8];        // 337
-*      char prefix[155];        // 345
-*                               // 500
-* };
+    TAR HEADER FORMAT
+    POSIX header
+
+    struct posix_header
+    {                             // byte offset
+         char name[100];          //   0
+         char mode[8];            // 100
+         char uid[8];             // 108
+         char gid[8];             // 116
+         char size[12];           // 124
+         char mtime[12];          // 136
+         char chksum[8];          // 148
+         char typeflag;           // 156
+         char linkname[100];      // 157
+         char magic[6];           // 257
+         char version[2];         // 263
+         char uname[32];          // 265
+         char gname[32];          // 297
+         char devmajor[8];        // 329
+         char devminor[8];        // 337
+         char prefix[155];        // 345
+                                  // 500
+    };
 */
 
 class Header
@@ -68,7 +68,7 @@ class Header
     {
         $str = rtrim(substr($this->content, 124, 12));
         if (preg_match('/^[0-7]+$/D', $str) !== 1) {
-            throw new RuntimeException(
+            throw new InvalidArchiveFormatException(
                 sprintf(
                     "Invalid Tar header format, file size must be octal number, '%s' got instead",
                     $str

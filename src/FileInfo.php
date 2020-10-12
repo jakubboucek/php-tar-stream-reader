@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tar;
+namespace JakubBoucek\Tar;
 
-use LogicException;
+use JakubBoucek\Tar\Exception\LogicException;
+use JakubBoucek\Tar\Parser\Header;
 
 class FileInfo
 {
@@ -47,8 +48,8 @@ class FileInfo
 
     public function getContent(): string
     {
-        if($this->content === null) {
-            throw new LogicException('Unable to read file content because scan-only mode');
+        if ($this->content === null) {
+            throw new LogicException('Unable to read file content in scan-only mode');
         }
         return $this->content;
     }

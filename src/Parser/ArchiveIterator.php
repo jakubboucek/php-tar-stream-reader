@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Tar;
+namespace JakubBoucek\Tar\Parser;
 
 use Iterator;
-use RuntimeException;
-use Tar\FileHandler\IHandler;
+use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
+use JakubBoucek\Tar\FileHandler\IHandler;
+use JakubBoucek\Tar\FileInfo;
 
 /**
- * @implements Iterator<FileInfo>
+ * @implements Iterator<string, FileInfo>
  */
 class ArchiveIterator implements Iterator
 {
@@ -57,17 +58,29 @@ class ArchiveIterator implements Iterator
 
         $headerData = fread($this->handle, 512);
         if (strlen($headerData) < 512) {
-            trigger_error(sprintf('Unexpected end of file, returned non-block size: %d bytes', strlen($headerData)));
-            return;
+            throw new InvalidArchiveFormatException(
+                sprintf(
+                    'Invalid TAR archive format: Unexpected end of file, returned non-block size: %d bytes',
+                    strlen($headerData)
+                )
+            );
         }
 
         $header = new Header($headerData);
+
         unset($headerData);
         if ($header->isValid() === false) {
-            // Tar format insert few blocks of nulls to EOF - check if already nulls or corrupted
+            // TAR format insert few blocks of nulls to EOF - check if already nulls or corrupted
             if ($header->isNullFilled() === false) {
-                throw new RuntimeException("Invalid data Tar header format in block position: $position bytes");
+                throw new InvalidArchiveFormatException(
+                    sprintf(
+                        'Invalid TAR archive format: Invalid data Tar header format in block position: %s bytes',
+                        $position
+                    )
+                );
             }
+
+            // Sometime Archive contains null-filled block instad of header
             return;
         }
 
@@ -79,9 +92,9 @@ class ArchiveIterator implements Iterator
             if ($this->readContent) {
                 $blockContent = fread($this->handle, $contentBlockSize);
                 if (strlen($blockContent) < $contentBlockSize) {
-                    throw new RuntimeException(
+                    throw new InvalidArchiveFormatException(
                         sprintf(
-                            'Unexpected end of file, returned non-block size: %d bytes',
+                            'Invalid TAR archive format: Unexpected end of file, returned non-block size: %d bytes',
                             strlen($blockContent)
                         )
                     );

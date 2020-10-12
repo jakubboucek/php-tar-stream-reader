@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tar\FileHandler;
+namespace JakubBoucek\Tar\FileHandler;
 
 use RuntimeException;
 
 class TarFileHandler implements IHandler
 {
-
     /**
      * @inheritDoc
      */

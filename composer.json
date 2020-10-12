@@ -1,14 +1,30 @@
 {
+    "name": "jakubboucek/tar-stream-reader",
+    "description": "Reader for TAR and TAR+GZip Archives, optimized for read huge size archives, effective memory usage.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jakub Bouček",
+            "email": "pan@jakubboucek.cz"
+        }
+    ],
     "require": {
         "php": ">=7.3",
         "ext-zlib": "*"
     },
+    "require-dev": {
+        "phpstan/phpstan": "^0.12.48",
+        "symplify/easy-coding-standard": "^8.3"
+    },
     "autoload": {
         "psr-4": {
-            "Tar\\": "libs/Tar/"
+            "JakubBoucek\\Tar\\": "src/"
         }
     },
     "scripts": {
-        "phpstan": "docker run --rm -v `pwd`:/www phpstan/phpstan analyse -c /www/phpstan.neon --level 6"
+        "phpstan": "phpstan analyse src --level 6",
+        "ecs": "ecs check src --set psr12",
+        "ecs-fix": "ecs check src --set psr12 --fix"
     }
 }

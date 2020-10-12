@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Tar\ArchiveReader;
+use JakubBoucek\Tar\ArchiveReader;
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -17,22 +17,21 @@ if ($argc < 2) {
     throw new RuntimeException(sprintf('Usage: %s <file>', basename(__FILE__)));
 }
 
-
-//Download ARES archive from http://wwwinfo.mfcr.cz/ares/ares_opendata.html.cz
-//$archiveFile = __DIR__ . '/source/ares_vreo_all.tar.gz';
 $archiveFile = $argv[1];
 
-$reader = new ArchiveReader($archiveFile, ArchiveReader::MODE_SCAN_FILES);
+$reader = ArchiveReader::scan($archiveFile);
 
 
 echo sprintf("%10s\t%10s\t%4s\t%s\n", 'File size', 'Memory', 'Type', 'File name');
-foreach ($reader as $file) {
+foreach ($reader as $filename => $file) {
     echo sprintf(
         "%10d\t%10d\t%4s\t%s\n",
         $file->getSize(),
         memory_get_usage(),
         $file->isDir() ? 'dir' : 'file',
-        $file->getName()
+        $filename
     );
+
+    // You can also read content of file:
     //$file->getContent();
 }
