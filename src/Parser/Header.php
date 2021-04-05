@@ -42,7 +42,7 @@ class Header
     {
         $length = strlen($content);
         if ($length !== 512) {
-            new InvalidArgumentException(sprintf('Tar header must be 512 bytes length, %d bytes got', $length));
+            throw new InvalidArgumentException(sprintf('Tar header must be 512 bytes length, %d bytes got', $length));
         }
 
         $this->content = $content;

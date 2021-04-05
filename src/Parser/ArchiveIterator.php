@@ -57,11 +57,11 @@ class ArchiveIterator implements Iterator
         $position = ftell($this->handle);
 
         $headerData = fread($this->handle, 512);
-        if (strlen($headerData) < 512) {
+        if ($headerData === false || strlen($headerData) < 512) {
             throw new InvalidArchiveFormatException(
                 sprintf(
                     'Invalid TAR archive format: Unexpected end of file, returned non-block size: %d bytes',
-                    strlen($headerData)
+                    $headerData === false ? 0 : strlen($headerData)
                 )
             );
         }
@@ -91,11 +91,11 @@ class ArchiveIterator implements Iterator
         if ($contentBlockSize > 0) {
             if ($this->readContent) {
                 $blockContent = fread($this->handle, $contentBlockSize);
-                if (strlen($blockContent) < $contentBlockSize) {
+                if ($blockContent === false || strlen($blockContent) < $contentBlockSize) {
                     throw new InvalidArchiveFormatException(
                         sprintf(
                             'Invalid TAR archive format: Unexpected end of file, returned non-block size: %d bytes',
-                            strlen($blockContent)
+                            $blockContent === false ? 0 : strlen($blockContent)
                         )
                     );
                 }
