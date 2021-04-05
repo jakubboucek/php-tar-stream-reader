@@ -32,18 +32,25 @@ foreach (ArchiveReader::read('example.tar') as $filename => $fileInfo) {
 Only scan files from an archive:
 ```php
 foreach (ArchiveReader::scan('example.tar') as $filename => $fileInfo) {
-    echo "File {$filename} is {$fileInfo->getSize()} bytes size, content of file.\n";
+    echo "File {$filename} is {$fileInfo->getSize()} bytes size.\n";
 }
 ```
 Scan mode is skipping contents od files in Archive. It's faster and less memory consume than read mode. 
 
 Define type of archive:
 ```php
-foreach (ArchiveReader::scan('example.tar+gzip', ArchiveReader::TYPE_GZ) as $filename => $fileInfo) {
-    echo "File {$filename} is {$fileInfo->getSize()} bytes size, content of file.\n";
+foreach (ArchiveReader::scan('example.tgz') as $filename => $fileInfo) {
+    echo "File {$filename} is {$fileInfo->getSize()} bytes size.\n";
 }
 ```
-Package recognize right type of Archive when using classic filename extension (`.tar`, `.tgz`, `.tar.gz`).
+Package recognize right type of Archive when using classic filename extension (`.tar`, `.tgz`, `.tar.gz`), but you can
+set archive type manually by second parameter `ArchiveReader::TYPE_GZ`:
+```php
+foreach (ArchiveReader::scan('example.tar+gzip', ArchiveReader::TYPE_GZ) as $filename => $fileInfo) {
+    echo "File {$filename} is {$fileInfo->getSize()} bytes size.\n";
+}
+```
+
 
 ## FAQ
 
@@ -63,9 +70,9 @@ No, TAR Archive is stream-based format, it does not support search, you must alw
 
 Here are two scopes of this question: **Archive size** or **Size of files in Archive**
 
-- **Archive size** is teoretically unlimited, beacuse package is using very effective  
+- **Archive size** is teoretically unlimited, beacuse package is using stream very effective.  
 - **Size of files in Archive** is in read mode limited to available RAM because Content of each file is directly
-loaded to variable. For each file content is not abailable another read method.
+loaded to variable. For each file content is not available another read method.
 
 ## Contributing
 Please don't hesitate send Issue or Pull Request.
