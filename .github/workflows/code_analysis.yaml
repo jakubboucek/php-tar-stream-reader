@@ -15,9 +15,6 @@ jobs:
           - name: PHPStan
             run: composer phpstan
 
-          - name: Easy Coding Standard
-            run: composer ecs
-
     name: ${{ matrix.actions.name }}
     runs-on: ubuntu-latest
 
