@@ -9,7 +9,7 @@ use IteratorAggregate;
 use JakubBoucek\Tar\Exception\EofException;
 use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
-use JakubBoucek\Tar\Parser\File;
+use JakubBoucek\Tar\Exception\RuntimeException;
 use JakubBoucek\Tar\Parser\Header;
 use JakubBoucek\Tar\Parser\LazyContent;
 use JakubBoucek\Tar\Parser\Usage;
@@ -22,6 +22,9 @@ class StreamReader implements IteratorAggregate
     /** @var resource */
     private $stream;
 
+    /**
+     * @param resource $stream Stream resource of TAR file
+     */
     public function __construct($stream)
     {
         if (!is_resource($stream)) {
@@ -59,11 +62,20 @@ class StreamReader implements IteratorAggregate
             $contentSize = $header->getSize();
             $contentPadding = ($contentSize % 512) === 0 ? 0 : 512 - ($contentSize % 512);
 
+            // Closure to lazy read, prevents backwards seek or repeated reads of discharged content
+            /**
+             * @param resource|null $target Resource to external stream to fill it by file content
+             * @return resource
+             */
             $contentClosure = function ($target = null) use ($usage, $contentSize, $contentPadding, $blockStart) {
                 $usage->use();
 
                 $isExternal = is_resource($target) && get_resource_type($target);
                 $stream = $isExternal ? $target : fopen('php://temp', 'wb+');
+
+                if(!$stream) {
+                    throw new RuntimeException('Unable to create temporary stream.');
+                }
 
                 // Empty content means nothing to transport, nothing to seek
                 if (!$contentSize) {
@@ -100,7 +112,7 @@ class StreamReader implements IteratorAggregate
                         sprintf(
                             'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of block padding',
                             $blockStart,
-                            $contentSize,
+                            $contentPadding,
                         )
                     );
                 }
@@ -108,7 +120,28 @@ class StreamReader implements IteratorAggregate
                 return $stream;
             };
 
-            yield new File($header, new LazyContent($contentClosure));
+            $content = new LazyContent($contentClosure);
+            yield new File($header, $content);
+
+            // Seek after unused content
+            if (!$usage->used()) {
+                $usage->use();
+                $content->close();
+                if ($contentSize) {
+                    // Skip unused content
+                    $bytes = fseek($this->stream, $contentSize + $contentPadding, SEEK_CUR);
+
+                    if ($bytes === -1) {
+                        throw new InvalidArchiveFormatException(
+                            sprintf(
+                                'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of content and block padding',
+                                $blockStart,
+                                $contentSize + $contentPadding,
+                            )
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -129,8 +162,8 @@ class StreamReader implements IteratorAggregate
                     )
                 );
             }
-            // TAR format inserts few blocks of nulls to EOF - just skip it
         } while (self::isNullFilled($header));
+        // ↑↑↑ TAR format inserts few blocks of nulls to EOF - just skip it
 
         return new Header($header);
     }

@@ -8,11 +8,11 @@ namespace JakubBoucek\Tar\FileHandler;
 use LogicException;
 use RuntimeException;
 
-class Bz2FileHandler implements FileHandler
+class Gz implements FileHandler
 {
     public static function match(string $filename): bool
     {
-        return (bool)preg_match('/\.t?bz2?$/D', $filename);
+        return (bool)preg_match('/\.t?gz$/D', $filename);
     }
 
     /**
@@ -22,17 +22,17 @@ class Bz2FileHandler implements FileHandler
     {
         if (!self::isAvailable()) {
             throw new LogicException(
-                __CLASS__ . " requires `ext-bz2` extension to open BZ2 compressed archive: '$filename'"
+                __CLASS__ . " requires `ext-zlib` extension to open GZipped archive: '$filename'"
             );
         }
 
-        $stream = bzopen($filename, 'rb');
+        $handle = gzopen($filename, 'rb');
 
-        if (is_resource($stream) === false) {
+        if (is_resource($handle) === false) {
             throw new RuntimeException("Unable to open file '$filename'");
         }
 
-        return $stream;
+        return $handle;
     }
 
     /**
@@ -40,11 +40,11 @@ class Bz2FileHandler implements FileHandler
      */
     public function close($stream): void
     {
-        bzclose($stream);
+        gzclose($stream);
     }
 
     private static function isAvailable(): bool
     {
-        return function_exists('bzopen');
+        return function_exists('gzopen');
     }
 }

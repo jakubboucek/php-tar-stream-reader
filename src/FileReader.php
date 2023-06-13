@@ -6,11 +6,7 @@ namespace JakubBoucek\Tar;
 
 use Iterator;
 use IteratorAggregate;
-use JakubBoucek\Tar\FileHandler\Bz2FileHandler;
-use JakubBoucek\Tar\FileHandler\FileHandler;
-use JakubBoucek\Tar\FileHandler\GzFileHandler;
-use JakubBoucek\Tar\FileHandler\TarFileHandler;
-use JakubBoucek\Tar\Parser\File;
+use JakubBoucek\Tar\FileHandler;
 
 /**
  * @implements IteratorAggregate<File>
@@ -18,17 +14,17 @@ use JakubBoucek\Tar\Parser\File;
 class FileReader implements IteratorAggregate
 {
     private string $filename;
-    private FileHandler $handler;
+    private FileHandler\FileHandler $handler;
 
-    public function __construct(string $filename, ?FileHandler $handler = null)
+    public function __construct(string $filename, ?FileHandler\FileHandler $handler = null)
     {
         $this->filename = $filename;
 
         if (!$handler) {
             $handler = match (true) {
-                GzFileHandler::match($filename) => new GzFileHandler(),
-                Bz2FileHandler::match($filename) => new Bz2FileHandler(),
-                default => new TarFileHandler(),
+                FileHandler\Gz::match($filename) => new FileHandler\Gz(),
+                FileHandler\Bz2::match($filename) => new FileHandler\Bz2(),
+                default => new FileHandler\Plain(),
             };
         }
 

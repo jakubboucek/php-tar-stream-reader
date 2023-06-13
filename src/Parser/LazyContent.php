@@ -64,6 +64,9 @@ class LazyContent implements StreamInterface
         $this->close();
     }
 
+    /**
+     * @param resource|null $context Stream context (e.g. from `stream_context_create()`)
+     */
     public function toFile(string $file, $context = null): void
     {
         $stream = fopen($file, 'wb', false, $context);

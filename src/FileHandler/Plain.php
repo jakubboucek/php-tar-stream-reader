@@ -6,13 +6,8 @@ namespace JakubBoucek\Tar\FileHandler;
 
 use RuntimeException;
 
-class TarFileHandler implements FileHandler
+class Plain implements FileHandler
 {
-    public static function match(string $filename): bool
-    {
-        return (bool)preg_match('/\.t?gz$/D', $filename);
-    }
-
     /**
      * @inheritDoc
      */

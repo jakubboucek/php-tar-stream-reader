@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-namespace JakubBoucek\Tar\Parser;
+namespace JakubBoucek\Tar;
 
+use JakubBoucek\Tar\Parser\Header;
+use JakubBoucek\Tar\Parser\LazyContent;
 use Psr\Http\Message\StreamInterface;
 
 class File
@@ -20,6 +22,12 @@ class File
         $this->header = $header;
         $this->content = $content;
     }
+
+    public function __toString(): string
+    {
+        return $this->getName();
+    }
+
 
     public function getName(): string
     {
