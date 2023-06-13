@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace JakubBoucek\Tar;
+namespace JakubBoucek\Tar\Parser;
 
-use JakubBoucek\Tar\Exception\LogicException;
-use JakubBoucek\Tar\Parser\Header;
+use Psr\Http\Message\StreamInterface;
 
-class FileInfo
+class File
 {
-    /** @var Header */
-    private $header;
+    private Header $header;
+    private LazyContent $content;
 
-    /** @var string|null */
-    private $content;
-
-    public function __construct(Header $header, ?string $content)
+    /**
+     * @param Header $header
+     * @param LazyContent $content
+     */
+    public function __construct(Header $header, LazyContent $content)
     {
-        $this->content = $content;
         $this->header = $header;
+        $this->content = $content;
     }
 
     public function getName(): string
@@ -46,11 +46,8 @@ class FileInfo
         return $this->header->getSize();
     }
 
-    public function getContent(): string
+    public function getContent(): StreamInterface
     {
-        if ($this->content === null) {
-            throw new LogicException('Unable to read file content in scan-only mode');
-        }
         return $this->content;
     }
 }

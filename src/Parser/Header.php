@@ -35,8 +35,7 @@ use JakubBoucek\Tar\Exception\InvalidArgumentException;
 
 class Header
 {
-    /** @var string */
-    private $content;
+    private string $content;
 
     public function __construct(string $content)
     {
@@ -46,11 +45,6 @@ class Header
         }
 
         $this->content = $content;
-    }
-
-    public function isNullFilled(): bool
-    {
-        return trim($this->content, "\0") === '';
     }
 
     public function isValid(): bool
@@ -111,8 +105,6 @@ class Header
 
     protected function getMagic(): string
     {
-        $str = substr($this->content, 257, 6);
-        $str = rtrim($str);
-        return $str;
+        return rtrim(substr($this->content, 257, 6));
     }
 }
