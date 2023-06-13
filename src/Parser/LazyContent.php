@@ -27,7 +27,7 @@ class LazyContent implements StreamInterface
         $this->close();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if ($this->isSeekable()) {
             $this->seek(0);
@@ -140,12 +140,12 @@ class LazyContent implements StreamInterface
         return (bool)stream_get_meta_data($this->getStream())['seekable'];
     }
 
-    public function seek(int $offset, int $whence = SEEK_SET): int
+    public function seek(int $offset, int $whence = SEEK_SET): void
     {
         if (!$this->isSeekable()) {
             throw new RuntimeException('Stream is not seekable');
         }
-        if (($result = fseek($this->getStream(), $offset, $whence)) === -1) {
+        if (fseek($this->getStream(), $offset, $whence) === -1) {
             throw new RuntimeException(
                 sprintf(
                     "Unable to seek to stream position %d with whence %s",
@@ -154,8 +154,6 @@ class LazyContent implements StreamInterface
                 )
             );
         }
-
-        return $result;
     }
 
     public function rewind(): void
@@ -168,7 +166,7 @@ class LazyContent implements StreamInterface
         return false;
     }
 
-    public function write(string $string)
+    public function write(string $string): int
     {
         throw new RuntimeException('Cannot write to a non-writable stream');
     }
