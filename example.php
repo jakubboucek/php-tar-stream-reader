@@ -19,7 +19,7 @@ if ($argc < 2) {
 
 $archiveFile = $argv[1];
 
-foreach (new FileReader(__DIR__ . '/tests/assets/test-archive-random.tgz') as $file) {
+foreach (new FileReader($archiveFile) as $file) {
     echo sprintf(
         "%20s: announced %6s bytes, really %6s bytes, hash: %s\n",
         $file->getName(),

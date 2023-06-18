@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace JakubBoucek\Tar\FileHandler;
 
-use RuntimeException;
+
+use JakubBoucek\Tar\Exception\RuntimeException;
 
 class Plain implements FileHandler
 {
@@ -16,7 +17,7 @@ class Plain implements FileHandler
         $handle = fopen($filename, 'rb');
 
         if (is_resource($handle) === false) {
-            throw new RuntimeException("Unable to open file \'$filename\'");
+            throw new RuntimeException("Unable to open file '$filename'");
         }
 
         return $handle;

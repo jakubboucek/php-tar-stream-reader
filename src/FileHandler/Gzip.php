@@ -5,10 +5,10 @@ declare(strict_types=1);
 
 namespace JakubBoucek\Tar\FileHandler;
 
-use LogicException;
-use RuntimeException;
+use JakubBoucek\Tar\Exception\LogicException;
+use JakubBoucek\Tar\Exception\RuntimeException;
 
-class Gz implements FileHandler
+class Gzip implements FileHandler
 {
     public static function match(string $filename): bool
     {
@@ -43,7 +43,7 @@ class Gz implements FileHandler
         gzclose($stream);
     }
 
-    private static function isAvailable(): bool
+    public static function isAvailable(): bool
     {
         return function_exists('gzopen');
     }

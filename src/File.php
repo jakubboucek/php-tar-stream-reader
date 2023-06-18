@@ -5,19 +5,18 @@ declare(strict_types=1);
 namespace JakubBoucek\Tar;
 
 use JakubBoucek\Tar\Parser\Header;
-use JakubBoucek\Tar\Parser\LazyContent;
 use Psr\Http\Message\StreamInterface;
 
 class File
 {
     private Header $header;
-    private LazyContent $content;
+    private StreamInterface $content;
 
     /**
      * @param Header $header
-     * @param LazyContent $content
+     * @param StreamInterface $content
      */
-    public function __construct(Header $header, LazyContent $content)
+    public function __construct(Header $header, StreamInterface $content)
     {
         $this->header = $header;
         $this->content = $content;

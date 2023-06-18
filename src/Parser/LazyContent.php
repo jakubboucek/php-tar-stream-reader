@@ -13,13 +13,13 @@ use Psr\Http\Message\StreamInterface;
 
 class LazyContent implements StreamInterface
 {
-    private ?Closure $contentCallback;
+    private ?Closure $contentClosure;
     /** @var resource|null */
-    private $stream = null;
+    private $stream;
 
-    public function __construct(Closure $contentCallback)
+    public function __construct(Closure $contentClosure)
     {
-        $this->contentCallback = $contentCallback;
+        $this->contentClosure = $contentClosure;
     }
 
     public function __destruct()
@@ -42,19 +42,26 @@ class LazyContent implements StreamInterface
      */
     public function toStream($stream): void
     {
+        if ($this->isClosed()) {
+            throw new FileContentClosedException(
+                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+            );
+        }
+
         if (!is_resource($stream)) {
             throw new InvalidArgumentException('Stream must be a resource');
         }
 
         // Direct stream-clean way, memory humble way
         if (!$this->isLoaded()) {
-            $this->getStream($stream);
-            $this->close();
+            // Call closure to fill stream
+            ($this->contentClosure)($stream);
+            $this->contentClosure = null;
             return;
         }
 
         // Backup way - reuse already loaded stream
-        $result = stream_copy_to_stream($this->getStream(), $this->stream);
+        $result = stream_copy_to_stream($this->getStream(), $stream);
 
         if ($result === false) {
             throw new RuntimeException('Unable to write to stream');
@@ -85,7 +92,7 @@ class LazyContent implements StreamInterface
 
     public function isClosed(): bool
     {
-        return !isset($this->stream) && !isset($this->contentCallback);
+        return !isset($this->stream) && !isset($this->contentClosure);
     }
 
     public function close(): void
@@ -97,7 +104,7 @@ class LazyContent implements StreamInterface
             fclose($this->stream);
         }
 
-        $this->stream = $this->contentCallback = null;
+        $this->stream = $this->contentClosure = null;
     }
 
 
@@ -110,12 +117,13 @@ class LazyContent implements StreamInterface
         if ($this->isSeekable()) {
             $this->seek(0);
         }
-        $this->stream = $this->contentCallback = null;
+        $this->stream = $this->contentClosure = null;
         return $stream;
     }
 
     public function getSize(): ?int
     {
+        trigger_error(sprintf("Method '%s' not implemented.", __METHOD__), E_USER_WARNING);
         return null;
     }
 
@@ -188,7 +196,7 @@ class LazyContent implements StreamInterface
         }
 
         try {
-            $string = fread($this->stream, $length);
+            $string = fread($this->getStream(), $length);
         } catch (Exception $e) {
             throw new RuntimeException('Unable to read from stream', 0, $e);
         }
@@ -225,10 +233,9 @@ class LazyContent implements StreamInterface
     }
 
     /**
-     * @param resource $target
      * @return resource
      */
-    private function getStream($target = null)
+    private function getStream()
     {
         if ($this->isClosed()) {
             throw new FileContentClosedException(
@@ -237,8 +244,9 @@ class LazyContent implements StreamInterface
         }
 
         if (!isset($this->stream)) {
-            $this->stream = ($this->contentCallback)($target);
-            $this->contentCallback = null;
+            $stream = ($this->contentClosure)();
+            $this->stream = $stream;
+            $this->contentClosure = null;
         }
 
         return $this->stream;

@@ -22,7 +22,7 @@ class FileReader implements IteratorAggregate
 
         if (!$handler) {
             $handler = match (true) {
-                FileHandler\Gz::match($filename) => new FileHandler\Gz(),
+                FileHandler\Gzip::match($filename) => new FileHandler\Gzip(),
                 FileHandler\Bz2::match($filename) => new FileHandler\Bz2(),
                 default => new FileHandler\Plain(),
             };
