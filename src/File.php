@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace JakubBoucek\Tar;
 
+use JakubBoucek\Tar\Parser\LightStreamInterface;
 use JakubBoucek\Tar\Parser\Header;
-use Psr\Http\Message\StreamInterface;
 
 class File
 {
     private Header $header;
-    private StreamInterface $content;
+    private LightStreamInterface $content;
 
     /**
      * @param Header $header
-     * @param StreamInterface $content
+     * @param LightStreamInterface $content
      */
-    public function __construct(Header $header, StreamInterface $content)
+    public function __construct(Header $header, LightStreamInterface $content)
     {
         $this->header = $header;
         $this->content = $content;
@@ -53,7 +53,7 @@ class File
         return $this->header->getSize();
     }
 
-    public function getContent(): StreamInterface
+    public function getContent(): LightStreamInterface
     {
         return $this->content;
     }

@@ -9,9 +9,8 @@ use Exception;
 use JakubBoucek\Tar\Exception\FileContentClosedException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
-use Psr\Http\Message\StreamInterface;
 
-class LazyContent implements StreamInterface
+class LazyContent implements LightStreamInterface
 {
     private ?Closure $contentClosure;
     /** @var resource|null */
