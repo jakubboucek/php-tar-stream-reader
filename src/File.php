@@ -4,22 +4,29 @@ declare(strict_types=1);
 
 namespace JakubBoucek\Tar;
 
-use JakubBoucek\Tar\Exception\LogicException;
+use JakubBoucek\Tar\Parser\LightStreamInterface;
 use JakubBoucek\Tar\Parser\Header;
 
-class FileInfo
+class File
 {
-    /** @var Header */
-    private $header;
+    private Header $header;
+    private LightStreamInterface $content;
 
-    /** @var string|null */
-    private $content;
-
-    public function __construct(Header $header, ?string $content)
+    /**
+     * @param Header $header
+     * @param LightStreamInterface $content
+     */
+    public function __construct(Header $header, LightStreamInterface $content)
     {
-        $this->content = $content;
         $this->header = $header;
+        $this->content = $content;
     }
+
+    public function __toString(): string
+    {
+        return $this->getName();
+    }
+
 
     public function getName(): string
     {
@@ -46,11 +53,8 @@ class FileInfo
         return $this->header->getSize();
     }
 
-    public function getContent(): string
+    public function getContent(): LightStreamInterface
     {
-        if ($this->content === null) {
-            throw new LogicException('Unable to read file content in scan-only mode');
-        }
         return $this->content;
     }
 }
