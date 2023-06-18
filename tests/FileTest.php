@@ -6,6 +6,7 @@ namespace JakubBoucek\Tar\Tests;
 
 use JakubBoucek\Tar\File;
 use JakubBoucek\Tar\Parser\Header;
+use JakubBoucek\Tar\Parser\LightStreamInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 
@@ -19,7 +20,7 @@ class FileTest extends TestCase
     public function test__toString(): void
     {
         $header = $this->createStub(Header::class);
-        $stream = $this->createStub(StreamInterface::class);
+        $stream = $this->createStub(LightStreamInterface::class);
 
         $header->method('getName')->willReturn(self::TestName);
 
@@ -31,7 +32,7 @@ class FileTest extends TestCase
     public function testGetName(): void
     {
         $header = $this->createStub(Header::class);
-        $stream = $this->createStub(StreamInterface::class);
+        $stream = $this->createStub(LightStreamInterface::class);
 
         $header->method('getName')->willReturn(self::TestName);
 
@@ -43,7 +44,7 @@ class FileTest extends TestCase
     public function testGetType(): void
     {
         $header = $this->createStub(Header::class);
-        $stream = $this->createStub(StreamInterface::class);
+        $stream = $this->createStub(LightStreamInterface::class);
 
         $header->method('getType')->willReturn(self::TestType);
 
@@ -55,7 +56,7 @@ class FileTest extends TestCase
     public function testIsFile(): void
     {
         $header = $this->createStub(Header::class);
-        $stream = $this->createStub(StreamInterface::class);
+        $stream = $this->createStub(LightStreamInterface::class);
 
         $header->method('isFile')->willReturn(true);
 
@@ -67,7 +68,7 @@ class FileTest extends TestCase
     public function testIsDir(): void
     {
         $header = $this->createStub(Header::class);
-        $stream = $this->createStub(StreamInterface::class);
+        $stream = $this->createStub(LightStreamInterface::class);
 
         $header->method('isDir')->willReturn(true);
 
@@ -79,7 +80,7 @@ class FileTest extends TestCase
     public function testGetSize(): void
     {
         $header = $this->createStub(Header::class);
-        $stream = $this->createStub(StreamInterface::class);
+        $stream = $this->createStub(LightStreamInterface::class);
 
         $header->method('getSize')->willReturn(self::TestSize);
 
@@ -91,7 +92,7 @@ class FileTest extends TestCase
     public function testGetContent(): void
     {
         $header = $this->createStub(Header::class);
-        $stream = $this->createStub(StreamInterface::class);
+        $stream = $this->createStub(LightStreamInterface::class);
 
         $header->method('getName')->willReturn(self::TestContent);
 
