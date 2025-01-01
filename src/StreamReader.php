@@ -22,6 +22,8 @@ class StreamReader implements IteratorAggregate
     /** @var resource */
     private $stream;
 
+    private ?Header $globalPaxHeader = null;
+
     /**
      * @param resource $stream Stream resource of TAR file
      */
@@ -51,7 +53,7 @@ class StreamReader implements IteratorAggregate
             if (!$header->isValid()) {
                 throw new InvalidArchiveFormatException(
                     sprintf(
-                        'Invalid TAR archive format: Invalid Tar header format: at %s. bytes',
+                        'Invalid TAR archive format: Invalid Tar header format: at byte %s',
                         $blockStart
                     )
                 );
@@ -165,7 +167,27 @@ class StreamReader implements IteratorAggregate
         } while (self::isNullFilled($header));
         // ↑↑↑ TAR format inserts few blocks of nulls to EOF - just skip it
 
-        return new Header($header);
+        $header = new Header($header);
+
+        // Handle PAX header block
+        $paxHeader = null;
+        switch($header->getType()) {
+            case 'x':
+                $paxHeader = $header;
+                $paxData = fread($this->stream, $paxHeader->getSize());
+                $paxHeader->harvestPaxData($paxData);
+                $header = $this->readHeader();
+                break;
+        }
+
+        if ($this->globalPaxHeader) {
+            $header->mergePaxHeader($this->globalPaxHeader);
+        }
+        if ($paxHeader) {
+            $header->mergePaxHeader($paxHeader);
+        }
+
+        return $header;
     }
 
     private static function isNullFilled(string $string): bool
