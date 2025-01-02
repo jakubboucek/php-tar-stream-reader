@@ -30,9 +30,9 @@ class PaxHeaderTest extends TestCase
 
         if ($totalSize > self::MAX_USTAR_SIZE) {
             // Generate a pax header and data record for a file larger than 8GB
-            $data = implode(PHP_EOL, [
+            $data = implode("\n", [
                     implode(' ', array_reverse([$data = 'size=' . $totalSize, strlen($data)])),
-                ]) . PHP_EOL;
+                ]) . "\n";
 
             yield str_pad(implode('', [
                 /* 0 */ 'name' => str_pad('massive_file.txt', 100, "\0"),

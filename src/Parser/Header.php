@@ -50,7 +50,7 @@ class Header
 
     public function harvestPaxData(string $paxData): void
     {
-        foreach (explode(PHP_EOL, $paxData) as $record) {
+        foreach (explode("\n", $paxData) as $record) {
             if ($record === '') {
                 continue;
             }
