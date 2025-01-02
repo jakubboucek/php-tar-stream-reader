@@ -36,6 +36,7 @@ use JakubBoucek\Tar\Exception\InvalidArgumentException;
 class Header
 {
     private string $content;
+    /** @var array<string, string|int> */
     private array $pax = [];
 
     public function __construct(string $content)
