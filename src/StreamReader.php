@@ -22,8 +22,6 @@ class StreamReader implements IteratorAggregate
     /** @var resource */
     private $stream;
 
-    private ?Header $globalPaxHeader = null;
-
     /**
      * @param resource $stream Stream resource of TAR file
      */
@@ -180,9 +178,6 @@ class StreamReader implements IteratorAggregate
                 break;
         }
 
-        if ($this->globalPaxHeader) {
-            $header->mergePaxHeader($this->globalPaxHeader);
-        }
         if ($paxHeader) {
             $header->mergePaxHeader($paxHeader);
         }
