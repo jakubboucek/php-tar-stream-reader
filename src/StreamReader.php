@@ -173,6 +173,11 @@ class StreamReader implements IteratorAggregate
             case 'x':
                 $paxHeader = $header;
                 $paxData = fread($this->stream, $paxHeader->getSize());
+                if ($paxData === false) {
+                    throw new InvalidArchiveFormatException(
+                        'Invalid TAR archive format: Unexpected end of file, expected PAX header data'
+                    );
+                }
                 $paxHeader->harvestPaxData($paxData);
                 $header = $this->readHeader();
                 break;
