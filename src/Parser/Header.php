@@ -55,8 +55,8 @@ class Header
             if ($record === '') {
                 continue;
             }
-            preg_match_all('/^(\d+) ([^=]+)=(.*)$/', $record, $matches);
-            if (count($matches) !== 4) {
+            $matchesFound = preg_match_all('/^(\d+) ([^=]+)=(.*)$/', $record, $matches);
+            if (!$matchesFound) {
                 throw new InvalidArchiveFormatException(
                     sprintf('Invalid Pax header record format: %s', $record)
                 );
