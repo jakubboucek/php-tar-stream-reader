@@ -33,13 +33,15 @@ class PaxHeaderTest extends TestCase
             $data = implode("\n", [
                     implode(' ', array_reverse([$data = 'size=' . $totalSize, strlen($data)])),
                 ]) . "\n";
+            $dataLength = strlen($data);
+            $data = str_pad($data, 512 * ceil($dataLength / 512), "\0");
 
             yield str_pad(implode('', [
                 /* 0 */ 'name' => str_pad('massive_file.txt', 100, "\0"),
                 /*100*/ 'mode' => str_pad('', 8, "\0"),
                 /*108*/ 'uid' => str_pad('', 8, "\0"),
                 /*116*/ 'gid' => str_pad('', 8, "\0"),
-                /*100*/ 'size' => str_pad(decoct(strlen($data)), 12, "\0"),
+                /*100*/ 'size' => str_pad(decoct($dataLength), 12, "\0"),
                 /*136*/ 'mtime' => str_pad('', 12, "\0"),
                 /*148*/ 'chksum' => str_pad('', 8, "\0"),
                 /*156*/ 'typeflag' => 'x',
