@@ -36,6 +36,8 @@ use JakubBoucek\Tar\Exception\InvalidArgumentException;
 class Header
 {
     private string $content;
+    /** @var array<string, string|int> */
+    private array $pax = [];
 
     public function __construct(string $content)
     {
@@ -45,6 +47,26 @@ class Header
         }
 
         $this->content = $content;
+    }
+
+    public function harvestPaxData(string $paxData): void
+    {
+        foreach (explode("\n", $paxData) as $record) {
+            if ($record === '') {
+                continue;
+            }
+            $matchesFound = preg_match_all('/^(\d+) ([^=]+)=(.*)$/', $record, $matches);
+            if (!$matchesFound) {
+                throw new InvalidArchiveFormatException(
+                    sprintf('Invalid Pax header record format: %s', $record)
+                );
+            }
+
+            $key = $matches[2][0];
+            $value = $matches[3][0];
+
+            $this->pax[$key] = $value;
+        }
     }
 
     public function isValid(): bool
@@ -60,6 +82,10 @@ class Header
 
     public function getSize(): int
     {
+        if (array_key_exists('size', $this->pax)) {
+            return (int)$this->pax['size'];
+        }
+
         $str = rtrim(substr($this->content, 124, 12));
         if (preg_match('/^[0-7]+$/D', $str) !== 1) {
             throw new InvalidArchiveFormatException(
@@ -71,6 +97,11 @@ class Header
         }
 
         return (int)octdec($str);
+    }
+
+    public function mergePaxHeader(Header $header): void
+    {
+        $this->pax = array_merge($header->pax, $this->pax);
     }
 
     /*
