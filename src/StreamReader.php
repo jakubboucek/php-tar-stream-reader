@@ -105,17 +105,7 @@ class StreamReader implements IteratorAggregate
                 }
 
                 // Skip padding
-                $bytes = $this->discardBytes($contentPadding);
-
-                if ($bytes !== $contentPadding) {
-                    throw new InvalidArchiveFormatException(
-                        sprintf(
-                            'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of block padding',
-                            $blockStart,
-                            $contentPadding,
-                        )
-                    );
-                }
+                $this->discardBytes($contentPadding);
 
                 return $stream;
             };
@@ -129,33 +119,35 @@ class StreamReader implements IteratorAggregate
                 $content->close();
                 if ($contentSize) {
                     // Skip unused content
-                    $bytes = $this->discardBytes($contentSize + $contentPadding);
-
-                    if ($bytes !== $contentSize + $contentPadding) {
-                        throw new InvalidArchiveFormatException(
-                            sprintf(
-                                'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of content and block padding',
-                                $blockStart,
-                                $contentSize + $contentPadding,
-                            )
-                        );
-                    }
+                    $this->discardBytes($contentSize + $contentPadding);
                 }
             }
         }
     }
 
-    private function discardBytes(int $length): int
+    /**
+     * Reads and discards unused content or padding in chunks of at most 8 KiB.
+     * Unlike seeking, reading verifies that the skipped bytes actually exist,
+     * while keeping memory usage bounded regardless of the requested length.
+     */
+    private function discardBytes(int $length): void
     {
+        $start = ftell($this->stream);
         $remaining = $length;
         while ($remaining > 0) {
             $chunk = fread($this->stream, min(8192, $remaining));
             if ($chunk === false || $chunk === '') {
-                break;
+                throw new InvalidArchiveFormatException(
+                    sprintf(
+                        'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes to discard, only %d bytes read',
+                        $start,
+                        $length,
+                        $length - $remaining,
+                    )
+                );
             }
             $remaining -= strlen($chunk);
         }
-        return $length - $remaining;
     }
 
     private function readHeader(): Header
