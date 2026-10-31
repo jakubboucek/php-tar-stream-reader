@@ -6,6 +6,13 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   code_analysis:
     strategy:
@@ -23,12 +30,16 @@ jobs:
           - '8.5'
           - '8.6'
 
-    name: ${{ matrix.actions.name }} at PHP ${{ matrix.php }}
+        dependencies: [highest, lowest]
+
+    name: ${{ matrix.actions.name }} at PHP ${{ matrix.php }} (${{ matrix.dependencies }})
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
         # see https://github.com/shivammathur/setup-php
@@ -43,14 +54,17 @@ jobs:
         id: composer-cache
         run: |
           echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: |
             ${{ steps.composer-cache.outputs.dir }}
             **/composer.lock
-          key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-lock
 
       - name: Install dependencies
-        run: composer update --no-progress
+        run: composer update --no-interaction --prefer-dist --no-progress ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
 
       - run: ${{ matrix.actions.run }}

@@ -37,6 +37,6 @@ Tester writes failure artifacts under `tests/**/output/`; these are ignored. Kee
 
 ## Continuous integration and distribution
 
-`.github/workflows/code_analysis.yaml` runs mandatory test and PHPStan jobs on PHP 8.4, 8.5 and 8.6, on pull requests and pushes to `master`. PHP 8.6 uses the prerelease build supplied by `setup-php` until stable builds are available. CI enables gzip and bzip2, disables coverage, installs dependencies with `composer update --no-progress` and caches both Composer downloads and lock files.
+`.github/workflows/code_analysis.yaml` runs mandatory test and PHPStan jobs with both highest and lowest dependencies on PHP 8.4, 8.5 and 8.6, on pull requests and pushes to `master`. PHP 8.6 uses the prerelease build supplied by `setup-php` until stable builds are available. CI enables gzip and bzip2, disables coverage, validates Composer configuration and installs dependencies with `composer update --no-interaction --prefer-dist --no-progress` (plus `--prefer-lowest --prefer-stable` for lowest dependencies). Both Composer downloads and lock files are cached separately by PHP version and dependency mode. New commits cancel superseded runs for the same ref.
 
 `.gitattributes` excludes tests, CI files, the example and Git metadata configuration files from distribution archives. There is no committed formatter configuration.
