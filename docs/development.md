@@ -4,7 +4,7 @@
 
 Composer autoloads `JakubBoucek\Tar\` from `src/` and `JakubBoucek\Tar\Tests\` from `tests/`. Runtime requirements are PHP `~8.0` and `psr/http-message` `~1.0 || ~2.0`. Gzip and bzip2 support use optional `ext-zlib` and `ext-bz2` extensions.
 
-Development dependencies are PHPUnit `^9.0 || ^10.0` and PHPStan pinned to `1.12.6`. `composer.lock` is ignored, so dependency resolutions can vary. There is no application bootstrap beyond Composer autoloading.
+Development dependencies are PHPUnit `^9.0 || ^10.0` and PHPStan pinned to `2.3.4`. `composer.lock` is ignored, so dependency resolutions can vary. There is no application bootstrap beyond Composer autoloading.
 
 ## Verification
 
