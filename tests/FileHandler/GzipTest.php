@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -25,7 +26,7 @@ class GzipTest extends TestCase
     {
         Assert::error(
             fn() => Assert::exception(
-                fn() => (new Gzip())->open(__DIR__ . '/__@$non-exists'),
+                fn() => new Gzip()->open(__DIR__ . '/__@$non-exists'),
                 RuntimeException::class,
             ),
             E_WARNING,
@@ -36,7 +37,7 @@ class GzipTest extends TestCase
     {
         Assert::error(
             fn() => Assert::exception(
-                fn() => (new Gzip())->open(__DIR__ . '/__@$non-exists'),
+                fn() => new Gzip()->open(__DIR__ . '/__@$non-exists'),
                 RuntimeException::class,
                 "Unable to open file '%a%/__@\$non-exists'",
             ),
@@ -68,4 +69,4 @@ class GzipTest extends TestCase
     }
 }
 
-(new GzipTest())->run();
+new GzipTest()->run();

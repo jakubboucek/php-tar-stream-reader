@@ -4,6 +4,4 @@ declare(strict_types=1);
 
 namespace JakubBoucek\Tar\Exception;
 
-class FileContentClosedException extends \LogicException
-{
-}
+class FileContentClosedException extends \LogicException {}

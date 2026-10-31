@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -90,4 +91,4 @@ class TrackingPlainHandler extends Plain
     }
 }
 
-(new FileReaderTest())->run();
+new FileReaderTest()->run();

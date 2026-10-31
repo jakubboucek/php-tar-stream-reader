@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -55,4 +56,4 @@ class HeaderDirTest extends TestCase
     }
 }
 
-(new HeaderDirTest())->run();
+new HeaderDirTest()->run();

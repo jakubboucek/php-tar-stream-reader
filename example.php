@@ -24,7 +24,7 @@ foreach (new FileReader($archiveFile) as $file) {
         "%20s: announced %6s bytes, really %6s bytes, hash: %s\n",
         $file->getName(),
         $file->getSize(),
-        strlen((string)$file->getContent()),
-        md5((string)$file->getContent())
+        strlen((string) $file->getContent()),
+        md5((string) $file->getContent()),
     );
 }

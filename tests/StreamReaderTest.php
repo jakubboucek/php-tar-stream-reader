@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -24,10 +25,10 @@ class StreamReaderTest extends TestCase
                 file_get_contents(__DIR__ . '/assets/test-archive-null.json'),
                 true,
                 512,
-                JSON_THROW_ON_ERROR
+                JSON_THROW_ON_ERROR,
             );
 
-            $iterator = (new StreamReader($stream))->getIterator();
+            $iterator = new StreamReader($stream)->getIterator();
 
             foreach ($patterns as $pattern) {
                 /** @noinspection DisconnectedForeachInstructionInspection */
@@ -56,10 +57,10 @@ class StreamReaderTest extends TestCase
                 file_get_contents(__DIR__ . '/assets/test-archive-random.json'),
                 true,
                 512,
-                JSON_THROW_ON_ERROR
+                JSON_THROW_ON_ERROR,
             );
 
-            $iterator = (new StreamReader($stream))->getIterator();
+            $iterator = new StreamReader($stream)->getIterator();
 
             foreach ($patterns as $pattern) {
                 /** @noinspection DisconnectedForeachInstructionInspection */
@@ -67,7 +68,7 @@ class StreamReaderTest extends TestCase
 
                 /** @var File $file */
                 $file = $iterator->current();
-                Assert::same($pattern['hash'], md5((string)$file->getContent()));
+                Assert::same($pattern['hash'], md5((string) $file->getContent()));
 
                 /** @noinspection DisconnectedForeachInstructionInspection */
                 $iterator->next();
@@ -83,7 +84,7 @@ class StreamReaderTest extends TestCase
     {
         $stream = gzopen(__DIR__ . '/assets/test-archive-random.tgz', 'rb');
         try {
-            $iterator = (new StreamReader($stream))->getIterator();
+            $iterator = new StreamReader($stream)->getIterator();
             $content = $iterator->current()->getContent();
             $iterator->next();
             Assert::true($content->isClosed());
@@ -148,9 +149,17 @@ class StreamReaderTest extends TestCase
     {
         $cases = [];
         foreach (['plain', 'gzip', 'bzip2'] as $compression) {
-            foreach (['short content' => 'ab', 'missing padding' => 'abc', 'short padding' => 'abc' . str_repeat("\0", 508)] as $name => $payload) {
+            foreach ([
+                'short content' => 'ab',
+                'missing padding' => 'abc',
+                'short padding' => 'abc' . str_repeat("\0", 508),
+            ] as $name => $payload) {
                 foreach ([false, true] as $readContent) {
-                    $cases[$compression . ' ' . $name . ' ' . ($readContent ? 'read' : 'skip')] = [$compression, $payload, $readContent];
+                    $cases[$compression . ' ' . $name . ' ' . ($readContent ? 'read' : 'skip')] = [
+                        $compression,
+                        $payload,
+                        $readContent,
+                    ];
                 }
             }
         }
@@ -174,4 +183,4 @@ class StreamReaderTest extends TestCase
     }
 }
 
-(new StreamReaderTest())->run();
+new StreamReaderTest()->run();

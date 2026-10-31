@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -25,7 +26,7 @@ class Bz2Test extends TestCase
     {
         Assert::error(
             fn() => Assert::exception(
-                fn() => (new Bz2())->open(__DIR__ . '/__@$non-exists'),
+                fn() => new Bz2()->open(__DIR__ . '/__@$non-exists'),
                 RuntimeException::class,
             ),
             E_WARNING,
@@ -36,7 +37,7 @@ class Bz2Test extends TestCase
     {
         Assert::error(
             fn() => Assert::exception(
-                fn() => (new Bz2())->open(__DIR__ . '/__@$non-exists'),
+                fn() => new Bz2()->open(__DIR__ . '/__@$non-exists'),
                 RuntimeException::class,
                 "Unable to open file '%a%/__@\$non-exists'",
             ),
@@ -70,4 +71,4 @@ class Bz2Test extends TestCase
     }
 }
 
-(new Bz2Test())->run();
+new Bz2Test()->run();

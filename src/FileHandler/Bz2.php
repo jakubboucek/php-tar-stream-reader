@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpComposerExtensionStubsInspection */
 
 declare(strict_types=1);
@@ -12,7 +13,7 @@ class Bz2 implements FileHandler
 {
     public static function match(string $filename): bool
     {
-        return (bool)preg_match('/\.t?bz2?$/D', $filename);
+        return (bool) preg_match('/\.t?bz2?$/D', $filename);
     }
 
     /**
@@ -22,7 +23,7 @@ class Bz2 implements FileHandler
     {
         if (!self::isAvailable()) {
             throw new LogicException(
-                __CLASS__ . " requires `ext-bz2` extension to open BZ2 compressed archive: '$filename'"
+                __CLASS__ . " requires `ext-bz2` extension to open BZ2 compressed archive: '$filename'",
             );
         }
 

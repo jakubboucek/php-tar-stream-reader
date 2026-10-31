@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -19,7 +20,7 @@ class FileTest extends TestCase
     private const TestSize = 123456;
     private const TestType = '5';
 
-    public function test__toString(): void
+    public function testToString(): void
     {
         $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
         $stream = new LazyContent(static function (): never {
@@ -28,7 +29,7 @@ class FileTest extends TestCase
 
         $file = new File($header, $stream);
 
-        Assert::same(self::TestName, (string)$file);
+        Assert::same(self::TestName, (string) $file);
     }
 
     public function testGetName(): void
@@ -108,4 +109,4 @@ class FileTest extends TestCase
     }
 }
 
-(new FileTest())->run();
+new FileTest()->run();

@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -23,4 +24,4 @@ class HeaderInvalidTest extends TestCase
     }
 }
 
-(new HeaderInvalidTest())->run();
+new HeaderInvalidTest()->run();

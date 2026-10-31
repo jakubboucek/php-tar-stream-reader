@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -29,7 +30,7 @@ class PlainTest extends TestCase
     {
         Assert::error(
             fn() => Assert::exception(
-                fn() => (new Plain())->open(__DIR__ . '/__@$non-exists'),
+                fn() => new Plain()->open(__DIR__ . '/__@$non-exists'),
                 RuntimeException::class,
             ),
             E_WARNING,
@@ -40,7 +41,7 @@ class PlainTest extends TestCase
     {
         Assert::error(
             fn() => Assert::exception(
-                fn() => (new Plain())->open(__DIR__ . '/__@$non-exists'),
+                fn() => new Plain()->open(__DIR__ . '/__@$non-exists'),
                 RuntimeException::class,
                 "Unable to open file '%a%/__@\$non-exists'",
             ),
@@ -49,4 +50,4 @@ class PlainTest extends TestCase
     }
 }
 
-(new PlainTest())->run();
+new PlainTest()->run();

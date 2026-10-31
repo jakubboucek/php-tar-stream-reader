@@ -52,8 +52,8 @@ class StreamReader implements IteratorAggregate
                 throw new InvalidArchiveFormatException(
                     sprintf(
                         'Invalid TAR archive format: Invalid Tar header format: at %s. bytes',
-                        $blockStart
-                    )
+                        $blockStart,
+                    ),
                 );
             }
 
@@ -73,7 +73,7 @@ class StreamReader implements IteratorAggregate
                 $isExternal = is_resource($target) && get_resource_type($target);
                 $stream = $isExternal ? $target : fopen('php://temp', 'wb+');
 
-                if(!$stream) {
+                if (!$stream) {
                     throw new RuntimeException('Unable to create temporary stream.');
                 }
 
@@ -87,11 +87,12 @@ class StreamReader implements IteratorAggregate
                 if ($bytes !== $contentSize) {
                     throw new InvalidArchiveFormatException(
                         sprintf(
-                            'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes, only %d bytes read',
+                            'Invalid TAR archive format: Unexpected end of file at position: '
+                            . '%s, expected %d bytes, only %d bytes read',
                             $blockStart,
                             $contentSize,
-                            ($bytes ?: 0)
-                        )
+                            ($bytes ?: 0),
+                        ),
                     );
                 }
 
@@ -139,11 +140,12 @@ class StreamReader implements IteratorAggregate
             if ($chunk === false || $chunk === '') {
                 throw new InvalidArchiveFormatException(
                     sprintf(
-                        'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes to discard, only %d bytes read',
+                        'Invalid TAR archive format: Unexpected end of file at position: '
+                        . '%s, expected %d bytes to discard, only %d bytes read',
                         $start,
                         $length,
                         $length - $remaining,
-                    )
+                    ),
                 );
             }
             $remaining -= strlen($chunk);
@@ -163,8 +165,8 @@ class StreamReader implements IteratorAggregate
                 throw new InvalidArchiveFormatException(
                     sprintf(
                         'Invalid TAR archive format: Unexpected end of file, returned non-block size: %d bytes',
-                        $header === false ? 0 : strlen($header)
-                    )
+                        $header === false ? 0 : strlen($header),
+                    ),
                 );
             }
         } while (self::isNullFilled($header));

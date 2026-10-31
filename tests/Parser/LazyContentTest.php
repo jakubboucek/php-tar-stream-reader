@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -43,9 +44,9 @@ class LazyContentTest extends TestCase
         unset($this->content);
     }
 
-    public function test__toString(): void
+    public function testToString(): void
     {
-        Assert::same(self::TestString, (string)$this->content);
+        Assert::same(self::TestString, (string) $this->content);
     }
 
     public function testToStream(): void
@@ -368,4 +369,4 @@ class LazyContentTest extends TestCase
     }
 }
 
-(new LazyContentTest())->run();
+new LazyContentTest()->run();

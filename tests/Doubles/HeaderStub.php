@@ -16,8 +16,7 @@ final class HeaderStub extends Header
         private string $name,
         private int $size,
         private string $type,
-    ) {
-    }
+    ) {}
 
     public function getName(): string
     {

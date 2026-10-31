@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -43,4 +44,4 @@ class UsageTest extends TestCase
     }
 }
 
-(new UsageTest())->run();
+new UsageTest()->run();

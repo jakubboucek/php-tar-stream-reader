@@ -1,4 +1,5 @@
 <?php
+
 /** @testCase */
 
 declare(strict_types=1);
@@ -38,4 +39,4 @@ class HeaderNullTest extends TestCase
     }
 }
 
-(new HeaderNullTest())->run();
+new HeaderNullTest()->run();

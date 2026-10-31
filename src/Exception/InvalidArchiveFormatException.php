@@ -4,6 +4,4 @@ declare(strict_types=1);
 
 namespace JakubBoucek\Tar\Exception;
 
-class InvalidArchiveFormatException extends RuntimeException
-{
-}
+class InvalidArchiveFormatException extends RuntimeException {}

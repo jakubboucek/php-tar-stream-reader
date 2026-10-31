@@ -65,12 +65,12 @@ class Header
             throw new InvalidArchiveFormatException(
                 sprintf(
                     "Invalid Tar header format, file size must be octal number, '%s' got instead",
-                    $str
-                )
+                    $str,
+                ),
             );
         }
 
-        return (int)octdec($str);
+        return (int) octdec($str);
     }
 
     /*

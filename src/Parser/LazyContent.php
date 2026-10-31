@@ -43,7 +43,7 @@ class LazyContent implements LightStreamInterface
     {
         if ($this->isClosed()) {
             throw new FileContentClosedException(
-                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
             );
         }
 
@@ -77,7 +77,7 @@ class LazyContent implements LightStreamInterface
     {
         if ($this->isClosed()) {
             throw new FileContentClosedException(
-                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
             );
         }
 
@@ -153,7 +153,7 @@ class LazyContent implements LightStreamInterface
 
     public function isSeekable(): bool
     {
-        return (bool)stream_get_meta_data($this->getStream())['seekable'];
+        return (bool) stream_get_meta_data($this->getStream())['seekable'];
     }
 
     public function seek(int $offset, int $whence = SEEK_SET): void
@@ -166,8 +166,8 @@ class LazyContent implements LightStreamInterface
                 sprintf(
                     "Unable to seek to stream position %d with whence %s",
                     $offset,
-                    var_export($whence, true)
-                )
+                    var_export($whence, true),
+                ),
             );
         }
     }
@@ -247,7 +247,7 @@ class LazyContent implements LightStreamInterface
     {
         if ($this->isClosed()) {
             throw new FileContentClosedException(
-                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
             );
         }
 

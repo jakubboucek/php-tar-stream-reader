@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpComposerExtensionStubsInspection */
 
 declare(strict_types=1);
@@ -12,7 +13,7 @@ class Gzip implements FileHandler
 {
     public static function match(string $filename): bool
     {
-        return (bool)preg_match('/\.t?gz$/D', $filename);
+        return (bool) preg_match('/\.t?gz$/D', $filename);
     }
 
     /**
@@ -22,7 +23,7 @@ class Gzip implements FileHandler
     {
         if (!self::isAvailable()) {
             throw new LogicException(
-                __CLASS__ . " requires `ext-zlib` extension to open GZipped archive: '$filename'"
+                __CLASS__ . " requires `ext-zlib` extension to open GZipped archive: '$filename'",
             );
         }
 
