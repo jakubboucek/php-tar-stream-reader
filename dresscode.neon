@@ -1,6 +1,7 @@
 use:
     - perCs
     - modernizations
+    - deprecations
 
 paths:
     - src
