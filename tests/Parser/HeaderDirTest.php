@@ -1,11 +1,15 @@
 <?php
+/** @testCase */
 
 declare(strict_types=1);
 
 namespace JakubBoucek\Tar\Tests\Parser;
 
 use JakubBoucek\Tar\Parser\Header;
-use PHPUnit\Framework\TestCase;
+use Tester\Assert;
+use Tester\TestCase;
+
+require __DIR__ . '/../bootstrap.php';
 
 class HeaderDirTest extends TestCase
 {
@@ -21,32 +25,34 @@ class HeaderDirTest extends TestCase
 
     public function testIsValid(): void
     {
-        $this->assertTrue($this->header->isValid());
+        Assert::true($this->header->isValid());
     }
 
     public function testIsDir(): void
     {
-        $this->assertTrue($this->header->isDir());
+        Assert::true($this->header->isDir());
     }
 
     public function testIsFile(): void
     {
-        $this->assertFalse($this->header->isFile());
+        Assert::false($this->header->isFile());
     }
 
     public function testGetSize(): void
     {
-        $this->assertEquals(0, $this->header->getSize());
+        Assert::same(0, $this->header->getSize());
     }
 
     public function testGetName(): void
     {
-        $this->assertEquals('some-dir/', $this->header->getName());
+        Assert::same('some-dir/', $this->header->getName());
     }
 
     public function testGetType(): void
     {
         $type = $this->header->getType();
-        $this->assertEquals('5', $type);
+        Assert::same('5', $type);
     }
 }
+
+(new HeaderDirTest())->run();
