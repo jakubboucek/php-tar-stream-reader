@@ -37,7 +37,6 @@ class LazyContent implements LightStreamInterface
 
     /**
      * @param resource $stream
-     * @return void
      */
     public function toStream($stream): void
     {
@@ -71,7 +70,7 @@ class LazyContent implements LightStreamInterface
     }
 
     /**
-     * @param resource|null $context Stream context (e.g. from `stream_context_create()`)
+     * @inheritDoc
      */
     public function toFile(string $file, $context = null): void
     {

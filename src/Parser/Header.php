@@ -35,16 +35,13 @@ use JakubBoucek\Tar\Exception\InvalidArgumentException;
 
 class Header
 {
-    private string $content;
-
-    public function __construct(string $content)
-    {
+    public function __construct(
+        private readonly string $content,
+    ) {
         $length = strlen($content);
         if ($length !== 512) {
             throw new InvalidArgumentException(sprintf('Tar header must be 512 bytes length, %d bytes got', $length));
         }
-
-        $this->content = $content;
     }
 
     public function isValid(): bool

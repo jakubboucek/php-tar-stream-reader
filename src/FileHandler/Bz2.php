@@ -23,7 +23,7 @@ class Bz2 implements FileHandler
     {
         if (!self::isAvailable()) {
             throw new LogicException(
-                __CLASS__ . " requires `ext-bz2` extension to open BZ2 compressed archive: '$filename'",
+                self::class . " requires `ext-bz2` extension to open BZ2 compressed archive: '$filename'",
             );
         }
 

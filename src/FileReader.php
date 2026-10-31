@@ -13,13 +13,12 @@ use JakubBoucek\Tar\FileHandler;
  */
 class FileReader implements IteratorAggregate
 {
-    private string $filename;
     private FileHandler\FileHandler $handler;
 
-    public function __construct(string $filename, ?FileHandler\FileHandler $handler = null)
-    {
-        $this->filename = $filename;
-
+    public function __construct(
+        private readonly string $filename,
+        ?FileHandler\FileHandler $handler = null,
+    ) {
         if (!$handler) {
             $handler = match (true) {
                 FileHandler\Gzip::match($filename) => new FileHandler\Gzip(),

@@ -23,7 +23,7 @@ class Gzip implements FileHandler
     {
         if (!self::isAvailable()) {
             throw new LogicException(
-                __CLASS__ . " requires `ext-zlib` extension to open GZipped archive: '$filename'",
+                self::class . " requires `ext-zlib` extension to open GZipped archive: '$filename'",
             );
         }
 
