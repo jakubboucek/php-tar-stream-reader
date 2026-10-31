@@ -1,0 +1,9 @@
+use: perCs
+
+paths:
+    - src
+    - tests
+    - example.php
+
+naming:
+    constant: PascalCase

@@ -8,11 +8,11 @@ Development dependencies are Nette Tester `~2.6.3`, PHPStan pinned to `2.3.4` an
 
 ## Verification
 
-Run `./check.sh test` or `./check.sh phpstan` for a quick check using the existing local `vendor/` directory. The script runs `composer run` in `jakubboucek/lamp-devstack-php:latest` and forwards Docker's exit status. It does not install dependencies or run a version matrix. Docker must be running and the installed dependencies must match the image's PHP version.
+Run `./check.sh test`, `./check.sh phpstan` or `./check.sh style` for a quick check using the existing local `vendor/` directory. The script runs `composer run` in `jakubboucek/lamp-devstack-php:latest` and forwards Docker's exit status. It does not install dependencies or run a version matrix. Docker must be running and the installed dependencies must match the image's PHP version.
 
-For compatibility checks, use `jakubboucek/lamp-devstack-php` images with tags `8.4-cli`, `8.5-cli` and `8.6-rc-cli` (use `8.6-cli` once available). Resolve dependencies independently for each version in a fresh disposable copy without `vendor/` or `composer.lock`. Keep an existing working installation intact. Enable both compression extensions so no handler tests are skipped.
+For compatibility checks, use `jakubboucek/lamp-devstack-php` images with tags `8.4-cli`, `8.5-cli` and `8.6-rc-cli` (use `8.6-cli` once available). Resolve dependencies independently for each version. Checks may run in the main workspace; reinstall dependencies when changing PHP versions or dependency bounds. Enable both compression extensions so no handler tests are skipped.
 
-From a disposable checkout:
+For a selected PHP image:
 
 ```sh
 image="jakubboucek/lamp-devstack-php:8.4-cli"
@@ -24,6 +24,16 @@ docker run --rm -v "$PWD:/app" -w /app "$image" composer run phpstan
 `composer run test` executes `tester tests -s`. Each `*Test.php` file loads `tests/bootstrap.php`, which initializes Composer autoloading and `Tester\Environment::setup()`. Test classes extend `Tester\TestCase`, declare `@testCase` for method isolation, and end with an explicit `run()` call. Unexpected warnings fail tests; expected warnings use `Assert::error()` around `Assert::exception()` when the operation also throws. Tester 2.6 loads the system PHP configuration by default.
 
 `composer run phpstan` analyzes `src/` at level 7. `phpstan.neon` targets PHP 8.4 even when analysis runs on newer PHP. If worker sockets are restricted, append `-- --debug` to disable parallel workers.
+
+## Code style
+
+`dresscode.neon` applies PER Coding Style 3.1 (`perCs`) to `src/`, `tests/` and `example.php`, with one project override: constants use `PascalCase`. Methods use `camelCase`; test methods must still start with `test` followed by an uppercase letter.
+
+Run `composer style` to check or `composer style:fix` to format. The Docker equivalents are `./check.sh style` and `./check.sh style:fix`. For individual files and agent-friendly feedback, run `vendor/bin/dresscode fix path/to/file.php --format agent` in the same environment. Re-read rewritten files before further edits.
+
+Only style rules are enabled: no modernization sets, risky fixes, baseline or PHPStan type integration. The target PHP version comes from Composer and remains PHP 8.4. Line length uses the preset's soft warning; warnings alone do not fail the check. Review formatting changes and run tests and PHPStan after broad formatting.
+
+DressCode is pinned because this library does not commit its lock file and new tool versions can add preset rules. Review its diff when updating. Agent hooks are optional and do not replace the full check; shell edits are not covered by the upstream hook.
 
 ## Tests and fixtures
 
@@ -40,4 +50,4 @@ Tester writes failure artifacts under `tests/**/output/`; these are ignored. Kee
 
 `.github/workflows/code_analysis.yaml` runs mandatory test and PHPStan jobs with both highest and lowest dependencies on PHP 8.4, 8.5 and 8.6, on pull requests and pushes to `master`. PHP 8.6 uses the prerelease build supplied by `setup-php` until stable builds are available. CI enables gzip and bzip2, disables coverage, validates Composer configuration and installs dependencies with `composer update --no-interaction --prefer-dist --no-progress` (plus `--prefer-lowest --prefer-stable` for lowest dependencies). Both Composer downloads and lock files are cached separately by PHP version and dependency mode. New commits cancel superseded runs for the same ref.
 
-`.gitattributes` excludes tests, CI, contributor documentation, development scripts, PHPStan configuration and Git configuration files from distribution archives. The package retains `src/`, `composer.json`, `README.md` and `LICENSE`. Maintain the exclusions when adding, moving or removing development files, and inspect archive contents after changing the rules. There is no committed formatter configuration.
+`.gitattributes` excludes tests, CI, contributor documentation, development scripts, PHPStan configuration and Git configuration files from distribution archives. The package retains `src/`, `composer.json`, `README.md` and `LICENSE`. Maintain the exclusions when adding, moving or removing development files, and inspect archive contents after changing the rules. The DressCode configuration is also excluded from distribution archives.
