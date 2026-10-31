@@ -1,11 +1,15 @@
 <?php
+/** @testCase */
 
 declare(strict_types=1);
 
 namespace JakubBoucek\Tar\Tests\Parser;
 
 use JakubBoucek\Tar\Parser\Header;
-use PHPUnit\Framework\TestCase;
+use Tester\Assert;
+use Tester\TestCase;
+
+require __DIR__ . '/../bootstrap.php';
 
 class HeaderTest extends TestCase
 {
@@ -19,38 +23,33 @@ class HeaderTest extends TestCase
 
     public function testIsValid(): void
     {
-        $this->assertTrue($this->header->isValid());
+        Assert::true($this->header->isValid());
     }
 
     public function testIsDir(): void
     {
-        $this->assertFalse($this->header->isDir());
+        Assert::false($this->header->isDir());
     }
 
     public function testIsFile(): void
     {
-        $this->assertTrue($this->header->isFile());
+        Assert::true($this->header->isFile());
     }
 
     public function testGetSize(): void
     {
-        $this->assertEquals(0, $this->header->getSize());
+        Assert::same(0, $this->header->getSize());
     }
 
     public function testGetName(): void
     {
-        $this->assertEquals('empty.txt', $this->header->getName());
+        Assert::same('empty.txt', $this->header->getName());
     }
 
     public function testGetType(): void
     {
-        $type = $this->header->getType();
-        $this->assertThat(
-            $type,
-            $this->logicalOr(
-                $this->equalTo('0'),
-                $this->equalTo("\0"),
-            )
-        );
+        Assert::true(in_array($this->header->getType(), ['0', "\0"], true));
     }
 }
+
+(new HeaderTest())->run();

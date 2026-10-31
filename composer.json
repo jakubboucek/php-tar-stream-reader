@@ -15,7 +15,7 @@
     },
     "require-dev": {
         "phpstan/phpstan": "2.3.4",
-        "phpunit/phpunit": "^9.0 || ^10.0"
+        "nette/tester": "~2.6.3"
     },
     "suggest": {
         "ext-bz2": "Needed to support BZ2 compressed archive format",
@@ -33,6 +33,6 @@
     },
     "scripts": {
         "phpstan": "phpstan analyse src --level 7",
-        "test": "phpunit tests"
+        "test": "tester tests -s"
     }
 }
