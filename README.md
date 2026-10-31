@@ -79,6 +79,9 @@ Here are two scopes of this question: **Archive size** or **Size of files in Arc
 ## Contributing
 Please don't hesitate send Issue or Pull Request.
 
+See the [project guide](AGENTS.md), [architecture and content lifecycle](docs/architecture.md),
+and [development guide](docs/development.md) before making changes.
+
 ## Security
 If you discover any security related issues, please email pan@jakubboucek.cz instead of using the issue tracker.
 
