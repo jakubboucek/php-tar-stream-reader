@@ -8,6 +8,8 @@ Development dependencies are PHPUnit `^9.0 || ^10.0` and PHPStan pinned to `1.12
 
 ## Verification
 
+For a quick check using the existing local `vendor/` directory, run `./check.sh test` or `./check.sh phpstan`. The script requires exactly one of these arguments, runs `composer run` in `jakubboucek/lamp-devstack-php:latest`, and returns Docker's exit status. It does not install dependencies or run a PHP version matrix. Docker must be running and the installed dependencies must be compatible with the image's PHP version.
+
 Use `jakubboucek/lamp-devstack-php` Docker images for PHP execution. The committed CI matrix covers PHP 8.0 through 8.4. Corresponding image tags are `8.0-legacy-cli`, `8.1-legacy-cli`, `8.2-cli`, `8.3-cli` and `8.4-cli`.
 
 For each version, use a fresh disposable project copy without `vendor/` or `composer.lock`, or remove those generated paths in a dedicated test checkout before installing. Do not delete an existing working installation just to run documentation checks. Run versions sequentially if they share a writable directory.
