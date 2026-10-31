@@ -5,8 +5,8 @@
 - Write all repository content in English, including code, comments, documentation, commit messages and PR descriptions.
 - Keep documentation concise and factual, describing current behavior. Put work history and validation milestones in commits and PR descriptions, not permanent documentation.
 - Store project and code knowledge here or in linked `docs/` files. Personal memory is reserved for user preferences and feedback.
-- Preserve PHP 8.0 compatibility (`composer.json` requires `~8.0`). Use strict types, four-space indentation and the existing brace style. Avoid unrelated formatting changes.
-- Prefer native types where PHP 8.0 supports them; retain PHPDoc for resources and collection types.
+- Preserve PHP 8.4 compatibility (`composer.json` requires `~8.4`); CI tests PHP 8.4–8.6. Use strict types, four-space indentation and the existing brace style. Avoid unrelated formatting changes.
+- Prefer native types where PHP 8.4 supports them; retain PHPDoc for resources and collection types.
 
 ## Project map
 

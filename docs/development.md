@@ -2,7 +2,7 @@
 
 ## Dependencies and layout
 
-Composer autoloads `JakubBoucek\Tar\` from `src/` and `JakubBoucek\Tar\Tests\` from `tests/`. Runtime requirements are PHP `~8.0` and `psr/http-message` `~1.0 || ~2.0`. Gzip and bzip2 support use optional `ext-zlib` and `ext-bz2` extensions.
+Composer autoloads `JakubBoucek\Tar\` from `src/` and `JakubBoucek\Tar\Tests\` from `tests/`. Runtime requirements are PHP `~8.4` and `psr/http-message` `~1.0 || ~2.0`. Gzip and bzip2 support use optional `ext-zlib` and `ext-bz2` extensions.
 
 Development dependencies are PHPUnit `^9.0 || ^10.0` and PHPStan pinned to `2.3.4`. `composer.lock` is ignored, so dependency resolutions can vary. There is no application bootstrap beyond Composer autoloading.
 
@@ -10,22 +10,22 @@ Development dependencies are PHPUnit `^9.0 || ^10.0` and PHPStan pinned to `2.3.
 
 For a quick check using the existing local `vendor/` directory, run `./check.sh test` or `./check.sh phpstan`. The script requires exactly one of these arguments, runs `composer run` in `jakubboucek/lamp-devstack-php:latest`, and returns Docker's exit status. It does not install dependencies or run a PHP version matrix. Docker must be running and the installed dependencies must be compatible with the image's PHP version.
 
-Use `jakubboucek/lamp-devstack-php` Docker images for PHP execution. The committed CI matrix covers PHP 8.0 through 8.4. Corresponding image tags are `8.0-legacy-cli`, `8.1-legacy-cli`, `8.2-cli`, `8.3-cli` and `8.4-cli`.
+Use `jakubboucek/lamp-devstack-php` Docker images for PHP execution. The committed CI matrix covers PHP 8.4 through 8.6. Corresponding image tags are `8.4-cli`, `8.5-cli` and `8.6-rc-cli` (use `8.6-cli` once available).
 
 For each version, use a fresh disposable project copy without `vendor/` or `composer.lock`, or remove those generated paths in a dedicated test checkout before installing. Do not delete an existing working installation just to run documentation checks. Run versions sequentially if they share a writable directory.
 
 From a disposable checkout:
 
 ```sh
-image="jakubboucek/lamp-devstack-php:8.2-cli"
+image="jakubboucek/lamp-devstack-php:8.4-cli"
 docker run --rm -v "$PWD:/app" -w /app "$image" composer install --no-interaction --prefer-dist
 docker run --rm -v "$PWD:/app" -w /app "$image" composer run test
 docker run --rm -v "$PWD:/app" -w /app "$image" composer run phpstan
 ```
 
-`composer run test` executes `phpunit tests`. `phpunit.xml` loads `vendor/autoload.php`, enables failure on warnings and targets a PHPUnit 10.2 XML schema. Because Composer also allows PHPUnit 9 (needed for PHP 8.0), verify configuration compatibility when testing that version instead of assuming both runners accept the same configuration.
+`composer run test` executes `phpunit tests`. `phpunit.xml` loads `vendor/autoload.php`, enables failure on warnings and targets a PHPUnit 10.2 XML schema.
 
-`composer run phpstan` analyzes `src/` at level 7, without a separate configuration file. If worker sockets are restricted, append `-- --debug` to run without parallel workers.
+`composer run phpstan` analyzes `src/` at level 7, with `phpstan.neon` targeting PHP 8.4 even when analysis runs on newer PHP. If worker sockets are restricted, append `-- --debug` to run without parallel workers.
 
 ## Tests and fixtures
 
