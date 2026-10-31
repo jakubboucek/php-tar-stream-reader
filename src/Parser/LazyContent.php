@@ -75,13 +75,22 @@ class LazyContent implements LightStreamInterface
      */
     public function toFile(string $file, $context = null): void
     {
+        if ($this->isClosed()) {
+            throw new FileContentClosedException(
+                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+            );
+        }
+
         $stream = fopen($file, 'wb', false, $context);
         if (!is_resource($stream)) {
             throw new InvalidArgumentException("Unable to open file: '$file'");
         }
 
-        $this->toStream($stream);
-        fclose($stream);
+        try {
+            $this->toStream($stream);
+        } finally {
+            fclose($stream);
+        }
     }
 
     public function isLoaded(): bool
