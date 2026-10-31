@@ -6,7 +6,6 @@ namespace JakubBoucek\Tar;
 
 use Iterator;
 use IteratorAggregate;
-use JakubBoucek\Tar\FileHandler;
 
 /**
  * @implements IteratorAggregate<File>
