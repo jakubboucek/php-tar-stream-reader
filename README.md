@@ -17,7 +17,7 @@ Reader for TAR and TAR+GZip Archives, optimized for read huge size archives, eff
 
 ## Install
 
-Requires PHP 8.4 or later within PHP 8.x. Tested on PHP 8.4–8.6. Gzip and bzip2 support need `ext-zlib` and `ext-bz2`, respectively.
+Requires PHP 8.4 or later within PHP 8.x and PSR HTTP Message 2.x. Tested on PHP 8.4–8.6. Gzip and bzip2 support need `ext-zlib` and `ext-bz2`, respectively.
 
 ```shell
 composer require jakubboucek/tar-stream-reader

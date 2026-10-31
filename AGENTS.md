@@ -23,7 +23,7 @@ This is `jakubboucek/tar-stream-reader`, a standalone, read-only PHP library for
 
 ## Design constraints
 
-- Preserve the PSR-4 namespace `JakubBoucek\Tar\` and compatibility with both PSR HTTP Message 1.x and 2.x.
+- Preserve the PSR-4 namespace `JakubBoucek\Tar\` and compatibility with PSR HTTP Message 2.x. Version 1.x is unsupported because its untyped interface parameters are incompatible with the typed stream implementation.
 - Keep content lazy and direct exports bounded in memory. Do not introduce whole-archive buffering or require backward seeking on the archive stream.
 - Consume or materialize entry content before advancing the iterator. Preserve closure of skipped content and the distinction between loaded content and direct export.
 - Compression extensions are optional at runtime. Keep explicit handler selection and extension availability checks.
