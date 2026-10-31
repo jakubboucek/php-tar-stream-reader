@@ -129,6 +129,47 @@ class LazyContentTest extends TestCase
         }
     }
 
+    public function testToFileClosedContentPreservesDestination(): void
+    {
+        $filename = tempnam(sys_get_temp_dir(), 'TarClosedContent');
+        try {
+            file_put_contents($filename, 'Keep existing data');
+            $this->content->close();
+
+            Assert::exception(
+                fn() => $this->content->toFile($filename),
+                FileContentClosedException::class,
+            );
+            Assert::same('Keep existing data', file_get_contents($filename));
+        } finally {
+            unlink($filename);
+        }
+    }
+
+    public function testToFileClosesDestinationOnFailure(): void
+    {
+        $filename = tempnam(sys_get_temp_dir(), 'TarFailedExport');
+        $target = null;
+        $failure = new RuntimeException('Export failed');
+        $content = new LazyContent(static function ($stream) use (&$target, $failure): never {
+            $target = $stream;
+            throw $failure;
+        });
+        try {
+            Assert::same($failure, Assert::exception(
+                fn() => $content->toFile($filename),
+                RuntimeException::class,
+                'Export failed',
+            ));
+            Assert::same('resource (closed)', gettype($target));
+        } finally {
+            if (is_resource($target)) {
+                fclose($target);
+            }
+            unlink($filename);
+        }
+    }
+
     public function testToFileInvalid(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'TarMissing');

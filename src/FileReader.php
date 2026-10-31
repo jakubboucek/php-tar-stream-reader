@@ -37,7 +37,10 @@ class FileReader implements IteratorAggregate
     public function getIterator(): Iterator
     {
         $stream = $this->handler->open($this->filename);
-        yield from new StreamReader($stream);
-        $this->handler->close($stream);
+        try {
+            yield from new StreamReader($stream);
+        } finally {
+            $this->handler->close($stream);
+        }
     }
 }
