@@ -4,7 +4,7 @@
 
 Composer autoloads `JakubBoucek\Tar\` from `src/` and `JakubBoucek\Tar\Tests\` from `tests/`. Runtime requirements are PHP `^8.4` and `psr/http-message` `^2.0`. Gzip and bzip2 handlers use optional `ext-zlib` and `ext-bz2` extensions.
 
-Development dependencies are Nette Tester `~2.6.3` and PHPStan pinned to `2.3.4`. `composer.lock` is ignored. The tests require no additional mocking library.
+Development dependencies are Nette Tester `~2.6.3`, PHPStan pinned to `2.3.4` and DressCode pinned to `1.3.1`. `composer.lock` is ignored. The tests require no additional mocking library.
 
 ## Verification
 
