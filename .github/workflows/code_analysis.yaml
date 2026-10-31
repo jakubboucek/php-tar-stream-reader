@@ -68,3 +68,38 @@ jobs:
         run: composer update --no-interaction --prefer-dist --no-progress ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
 
       - run: ${{ matrix.actions.run }}
+
+
+  code_style:
+    name: Code style
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            **/composer.lock
+          key: ${{ runner.os }}-8.4-highest-composer-${{ hashFiles('**/composer.json') }}
+
+      - name: Install dependencies
+        run: composer update --no-interaction --prefer-dist --no-progress
+
+      - name: Check code style
+        run: composer style
