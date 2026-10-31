@@ -111,6 +111,52 @@ class StreamReaderTest extends TestCase
         $this->assertInvalidArchive($header . 'ab');
     }
 
+    /** @dataProvider truncatedArchives */
+    public function testTruncatedArchive(string $compression, string $payload, bool $readContent): void
+    {
+        if ($compression === 'bzip2' && !extension_loaded('bz2')) {
+            $this->skip('The bz2 extension is required.');
+        }
+        $header = file_get_contents(__DIR__ . '/assets/header.bin');
+        $archive = substr_replace($header, "00000000003\0", 124, 12) . $payload;
+        $encoded = match ($compression) {
+            'gzip' => gzencode($archive),
+            'bzip2' => bzcompress($archive),
+            default => $archive,
+        };
+        $handler = match ($compression) {
+            'gzip' => new \JakubBoucek\Tar\FileHandler\Gzip(),
+            'bzip2' => new \JakubBoucek\Tar\FileHandler\Bz2(),
+            default => new \JakubBoucek\Tar\FileHandler\Plain(),
+        };
+        $filename = tempnam(sys_get_temp_dir(), 'TarTruncated');
+        try {
+            file_put_contents($filename, $encoded);
+            Assert::exception(function () use ($filename, $handler, $readContent): void {
+                foreach (new \JakubBoucek\Tar\FileReader($filename, $handler) as $file) {
+                    if ($readContent) {
+                        $file->getContent()->getContents();
+                    }
+                }
+            }, InvalidArchiveFormatException::class);
+        } finally {
+            unlink($filename);
+        }
+    }
+
+    public function truncatedArchives(): array
+    {
+        $cases = [];
+        foreach (['plain', 'gzip', 'bzip2'] as $compression) {
+            foreach (['short content' => 'ab', 'missing padding' => 'abc', 'short padding' => 'abc' . str_repeat("\0", 508)] as $name => $payload) {
+                foreach ([false, true] as $readContent) {
+                    $cases[$compression . ' ' . $name . ' ' . ($readContent ? 'read' : 'skip')] = [$compression, $payload, $readContent];
+                }
+            }
+        }
+        return $cases;
+    }
+
     private function assertInvalidArchive(string $archive): void
     {
         $stream = fopen('php://memory', 'wb+');

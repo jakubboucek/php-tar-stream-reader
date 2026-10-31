@@ -23,7 +23,7 @@ Each iteration of `FileReader` opens a resource and delegates to `StreamReader`.
 - Advancing the archive iterator closes unconsumed content and skips its bytes and padding. Retaining a `File` does not retain unread archive content. Already materialized content remains usable until closed, exported, detached or destroyed.
 - `LazyContent::getSize()` emits a user warning and returns `null`; use `File::getSize()` for the declared entry size. Content is read-only; `write()` throws.
 
-The archive cursor advances by entry size plus padding to a 512-byte boundary. Content copies check the number of transferred bytes. Skipping unused content and padding uses forward `fseek()`, so arbitrary non-seekable resources are not generally supported. A successful seek alone does not prove that skipped bytes exist.
+The archive cursor advances by entry size plus padding to a 512-byte boundary. Content copies check the number of transferred bytes. Unused content and padding are read and discarded in chunks of at most 8192 bytes; missing bytes raise `InvalidArchiveFormatException` even during metadata-only traversal. This keeps memory bounded but requires reading skipped data rather than seeking over it. Arbitrary non-seekable resources are not guaranteed to work.
 
 ## Format boundaries and areas requiring care
 
@@ -32,7 +32,6 @@ These are current implementation limits, not guarantees to preserve when fixing 
 - Header validation checks only the `ustar` magic. Checksums are not validated. Size is parsed only as octal; PAX size overrides and GNU base-256 sizes are not implemented.
 - Names come only from the first 100 header bytes. The USTAR prefix, PAX `path` and GNU long-name records are not applied. Link targets and filesystem metadata are not exposed through `File`.
 - PAX metadata is not parsed or applied. Entries with local type `x` or global type `g` are yielded like other entries when their headers pass validation; they do not modify subsequent entries.
-- Handler tests check opening compressed resources, not complete bzip2 archive traversal. Forward seeking through a compression resource needs separate verification.
 
 There is no archive-writing API or automatic filesystem extraction. Export paths are supplied by the caller; entry names are raw metadata and should not be used as trusted destination paths without validation.
 

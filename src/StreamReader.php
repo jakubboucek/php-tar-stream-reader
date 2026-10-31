@@ -105,9 +105,9 @@ class StreamReader implements IteratorAggregate
                 }
 
                 // Skip padding
-                $bytes = fseek($this->stream, $contentPadding, SEEK_CUR);
+                $bytes = $this->discardBytes($contentPadding);
 
-                if ($bytes === -1) {
+                if ($bytes !== $contentPadding) {
                     throw new InvalidArchiveFormatException(
                         sprintf(
                             'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of block padding',
@@ -123,15 +123,15 @@ class StreamReader implements IteratorAggregate
             $content = new LazyContent($contentClosure);
             yield new File($header, $content);
 
-            // Seek after unused content
+            // Discard unused content
             if (!$usage->used()) {
                 $usage->use();
                 $content->close();
                 if ($contentSize) {
                     // Skip unused content
-                    $bytes = fseek($this->stream, $contentSize + $contentPadding, SEEK_CUR);
+                    $bytes = $this->discardBytes($contentSize + $contentPadding);
 
-                    if ($bytes === -1) {
+                    if ($bytes !== $contentSize + $contentPadding) {
                         throw new InvalidArchiveFormatException(
                             sprintf(
                                 'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of content and block padding',
@@ -143,6 +143,19 @@ class StreamReader implements IteratorAggregate
                 }
             }
         }
+    }
+
+    private function discardBytes(int $length): int
+    {
+        $remaining = $length;
+        while ($remaining > 0) {
+            $chunk = fread($this->stream, min(8192, $remaining));
+            if ($chunk === false || $chunk === '') {
+                break;
+            }
+            $remaining -= strlen($chunk);
+        }
+        return $length - $remaining;
     }
 
     private function readHeader(): Header

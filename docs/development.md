@@ -27,7 +27,7 @@ docker run --rm -v "$PWD:/app" -w /app "$image" composer run phpstan
 
 ## Tests and fixtures
 
-- `StreamReaderTest` checks archive metadata and content hashes against committed `.tgz` archives and JSON manifests for entry sizes 0 through 1024 bytes, including block boundaries. It also checks complete traversal, skipped-content lifetime, short headers, invalid magic and truncated content.
+- `StreamReaderTest` checks archive metadata and content hashes against committed `.tgz` archives and JSON manifests for entry sizes 0 through 1024 bytes, including block boundaries. It also checks complete traversal, skipped-content lifetime, short headers, invalid magic and truncated content or padding, with both content reads and metadata-only traversal across plain, gzip and bzip2 archives.
 - `FileReaderTest` checks that the handler closes its resource exactly once after exhaustion, early termination and parser or consumer exceptions.
 - `FileTest` checks metadata delegation using `tests/Doubles/HeaderStub.php` and verifies content object identity without triggering lazy loading. The stub keeps file/directory flags independent of the raw type to detect incorrect delegation.
 - Header tests, `UsageTest` and `LazyContentTest` check header fields, single-use behavior and content operations. Expected warnings must actually occur; stream and temporary-file cleanup uses `finally` where applicable.

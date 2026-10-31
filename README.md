@@ -61,7 +61,7 @@ foreach (new Tar\StreamReader($stream) as $file) {
 - Consume or materialize content before advancing the archive iterator. Unread content is closed when the iterator advances; retaining a `File` object does not retain its unread bytes.
 - For large entries, call `toStream()` or `toFile()` before any content reads to export directly. Other stream operations can materialize the entire entry into temporary storage; casting content to a string loads it into PHP memory.
 - Export consumes the content object. If content is already materialized, export starts at its current position; rewind it first to export the whole entry.
-- The reader uses forward seeking to skip content and padding. Arbitrary non-seekable streams are not supported.
+- Skipped content and padding are read and discarded in bounded chunks so truncated entries are detected even during metadata-only traversal. Arbitrary non-seekable streams are not guaranteed to work.
 - TAR support is limited: PAX metadata, USTAR name prefixes and GNU long-name records are not applied, and header checksums are not validated. Archive entry names are untrusted metadata; validate them before using them as export paths.
 
 ## FAQ
