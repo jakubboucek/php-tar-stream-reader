@@ -4,7 +4,7 @@
 
 `FileReader` chooses a handler from the case-sensitive filename suffix: `Gzip` matches `.gz` and `.tgz`; `Bz2` matches `.bz`, `.bz2`, `.tbz` and `.tbz2`; otherwise `Plain` is used. The optional second constructor argument overrides detection. Detection does not inspect file contents.
 
-Each iteration of `FileReader` opens a resource and delegates to `StreamReader`. The handler closes it after normal exhaustion. This cleanup is not protected by `finally`, so early termination and exceptions do not guarantee that the explicit close call runs.
+Each iteration of `FileReader` opens a resource and delegates to `StreamReader`. A `finally` block closes it after exhaustion, a reader exception or destruction of an unfinished generator (including a direct `foreach` interrupted by `break` or an exception). If the caller retains the generator, the resource remains open until that generator finishes or is released.
 
 `StreamReader` accepts a resource containing decompressed TAR bytes. It does not rewind or close the caller's resource. Its generator reads 512-byte headers and yields `File` objects. Empty reads end iteration; all-zero blocks are skipped rather than treated as a mandatory two-block end marker. Short headers raise `InvalidArchiveFormatException`.
 
