@@ -1,4 +1,6 @@
-use: perCs
+use:
+    - perCs
+    - modernizations
 
 paths:
     - src
@@ -7,3 +9,5 @@ paths:
 
 naming:
     constant: PascalCase
+multiline:
+    spreadAlways: [promotedProperty]
