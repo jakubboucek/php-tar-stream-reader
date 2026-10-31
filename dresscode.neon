@@ -2,6 +2,7 @@ use:
     - perCs
     - modernizations
     - deprecations
+    - cleanup
 
 paths:
     - src
