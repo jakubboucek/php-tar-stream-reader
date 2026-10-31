@@ -32,4 +32,5 @@ This is `jakubboucek/tar-stream-reader`, a standalone, read-only PHP library for
 - Cover behavior changes with focused Nette Tester regression tests, especially archive padding, content lifetime and error paths.
 - Run PHP checks in `jakubboucek/lamp-devstack-php` Docker images, as in the related projects. Resolve dependencies separately for each PHP version; use disposable copies to preserve an existing installation. See the development guide.
 - Do not commit `vendor/`, `composer.lock`, Tester output files or generated temporary files. Preserve committed archive fixtures unless deliberately updating their matching expectations.
+- Maintain `.gitattributes` whenever adding, moving or removing development-only files or directories. Exclude tests, CI, tooling and contributor documentation with `export-ignore`; keep runtime source, `composer.json`, `README.md` and `LICENSE` in distribution archives. Verify the archive contents after changing these rules.
 - Preserve Composer download and lock-file caches when editing CI. Keep workflow changes in separate commits and verify CI before proceeding to another workflow change when publishing is authorized.
