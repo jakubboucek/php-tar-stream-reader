@@ -116,12 +116,18 @@ class StreamReader implements IteratorAggregate
             };
 
             $content = new LazyContent($contentClosure);
-            yield new File($header, $content);
+            try {
+                yield new File($header, $content);
+            } finally {
+                // Unread content cannot outlive its archive position or generator.
+                if (!$usage->used()) {
+                    $content->close();
+                }
+            }
 
             // Discard unused content
             if (!$usage->used()) {
                 $usage->use();
-                $content->close();
                 if ($contentSize) {
                     // Skip unused content
                     $this->discardBytes($contentSize + $contentPadding);
