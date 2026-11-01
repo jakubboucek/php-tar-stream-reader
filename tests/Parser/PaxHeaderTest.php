@@ -19,6 +19,8 @@ class PaxHeaderTest extends TestCase
     public function testSupportedValues(): void
     {
         Assert::same(['size' => 3, 'path' => 'abc'], PaxHeader::parse("9 size=3\n12 path=abc\n"));
+        Assert::same(['size' => PHP_INT_MAX], PaxHeader::parse("28 size=9223372036854775807\n"));
+        Assert::same(['path' => "\xff"], PaxHeader::parse("21 hdrcharset=BINARY\n10 path=\xff\n"));
         Assert::same(['size' => 0], PaxHeader::parse("9 size=0\n"));
         Assert::same(['size' => 8589934592], PaxHeader::parse("19 size=8589934592\n"));
         Assert::same(['size' => 3], PaxHeader::parse("9 size=0\n9 size=3\n"));
@@ -37,8 +39,8 @@ class PaxHeaderTest extends TestCase
             "9 size=3!",
             "x size=3\n",
             "9 size=-1\n",
-            "10 size=-1\n",
-            "16 size=3garbage\n",
+            "11 size=-1\n",
+            "17 size=3garbage\n",
             "8 =test\n",
             "9 noequals\n",
             "999999999999999999999999999999 size=3\n",
