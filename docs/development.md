@@ -8,7 +8,7 @@ Development dependencies are Nette Tester `~2.6.3`, PHPStan pinned to `2.3.4` an
 
 ## Verification
 
-Run `./check.sh test`, `./check.sh phpstan` or `./check.sh style` for a quick check using the existing local `vendor/` directory. The script runs `composer run` in `jakubboucek/lamp-devstack-php:latest` and forwards Docker's exit status. It does not install dependencies or run a version matrix. Docker must be running and the installed dependencies must match the image's PHP version.
+Run `./check.sh test`, `./check.sh phpstan` or `./check.sh dresscode` for a quick check using the existing local `vendor/` directory. The script runs `composer run` in `jakubboucek/lamp-devstack-php:latest` and forwards Docker's exit status. It does not install dependencies or run a version matrix. Docker must be running and the installed dependencies must match the image's PHP version.
 
 For compatibility checks, use `jakubboucek/lamp-devstack-php` images with tags `8.4-cli`, `8.5-cli` and `8.6-rc-cli` (use `8.6-cli` once available). Resolve dependencies independently for each version. Checks may run in the main workspace; reinstall dependencies when changing PHP versions or dependency bounds. Enable both compression extensions so no handler tests are skipped.
 
@@ -27,11 +27,17 @@ docker run --rm -v "$PWD:/app" -w /app "$image" composer run phpstan
 
 ## Code style
 
-`dresscode.neon` applies PER Coding Style 3.1 (`perCs`) to `src/`, `tests/` and `example.php`, with one project override: constants use `PascalCase`. Methods use `camelCase`; test methods must still start with `test` followed by an uppercase letter.
+`dresscode.neon` applies PER Coding Style 3.1 (`perCs`) to `src/`, `tests/` and `example.php`, with project overrides: constants use `PascalCase`, and signatures containing promoted properties always span multiple lines. Methods use `camelCase`; test methods must still start with `test` followed by an uppercase letter.
 
-Run `composer style` to check or `composer style:fix` to format. The Docker equivalents are `./check.sh style` and `./check.sh style:fix`. For individual files and agent-friendly feedback, run `vendor/bin/dresscode fix path/to/file.php --format agent` in the same environment. Re-read rewritten files before further edits.
+Run `composer dresscode` to check or `composer dresscode:fix` to format. The Docker equivalents are `./check.sh dresscode` and `./check.sh dresscode:fix`. For individual files and agent-friendly feedback, run `vendor/bin/dresscode fix path/to/file.php --format agent` in the same environment. Re-read rewritten files before further edits.
 
-Only style rules are enabled: no modernization sets, risky fixes, baseline or PHPStan type integration. The target PHP version comes from Composer and remains PHP 8.4. Line length uses the preset's soft warning; warnings alone do not fail the check. Review formatting changes and run tests and PHPStan after broad formatting.
+All six additional sets are enabled: `modernizations`, `deprecations`, `cleanup`, `correctness`, `types` and `compilerOptimizations`. These can change declarations and behavior, not just whitespace; inspect changes to public API and exception handling before accepting them. Risky fixes and a baseline are not enabled. The target PHP version comes from Composer and remains PHP 8.4. Line length uses the preset's soft warning; warnings alone do not fail the check. Review formatting changes and run tests and PHPStan after broad formatting.
+
+PHPStan type inference is enabled explicitly through `typeAnalysis: phpstan`; the `types` set alone would not enable it. CI runs DressCode with `--no-cache` so changes in other classes or PHPStan configuration are considered. `no effect: php` in the resolved configuration correctly skips syntax newer than the PHP 8.4 target.
+
+`nameResolution: certain` asserts that bare function and constant names can be resolved with the configured namespace declarations. The library currently declares no namespace-level functions or constants. If any are added, update the `namespaces` configuration before trusting related rewrites. `use function` imports from compiler optimizations bypass namespace fallback and must not be treated as interchangeable with consumer-provided function shims.
+
+After changing presets, run `vendor/bin/dresscode config` to verify the effective decisions and `vendor/bin/dresscode check --no-cache` to audit all files. A clean check is not proof that every available decision ran. Use `explain <decision>` for the installed version; online documentation may describe newer CLI features.
 
 DressCode is pinned because this library does not commit its lock file and new tool versions can add preset rules. Review its diff when updating. Agent hooks are optional and do not replace the full check; shell edits are not covered by the upstream hook.
 
@@ -48,6 +54,6 @@ Tester writes failure artifacts under `tests/**/output/`; these are ignored. Kee
 
 ## Continuous integration and distribution
 
-`.github/workflows/code_analysis.yaml` runs mandatory test and PHPStan jobs with both highest and lowest dependencies on PHP 8.4, 8.5 and 8.6, on pull requests and pushes to `master`. PHP 8.6 uses the prerelease build supplied by `setup-php` until stable builds are available. A separate code-style job runs `composer style` once on PHP 8.4 with normal dependency resolution. DressCode emits GitHub annotations automatically; CI checks without rewriting files. CI enables gzip and bzip2, disables coverage, validates Composer configuration and installs dependencies with `composer update --no-interaction --prefer-dist --no-progress` (plus `--prefer-lowest --prefer-stable` for lowest dependencies). Both Composer downloads and lock files are cached separately by PHP version and dependency mode. New commits cancel superseded runs for the same ref.
+`.github/workflows/code_analysis.yaml` runs mandatory test and PHPStan jobs with both highest and lowest dependencies on PHP 8.4, 8.5 and 8.6, on pull requests and pushes to `master`. PHP 8.6 uses the prerelease build supplied by `setup-php` until stable builds are available. A separate code-style job runs `composer dresscode -- --no-cache` once on PHP 8.4 with normal dependency resolution. DressCode emits GitHub annotations automatically; CI checks without rewriting files. CI enables gzip and bzip2, disables coverage, validates Composer configuration and installs dependencies with `composer update --no-interaction --prefer-dist --no-progress` (plus `--prefer-lowest --prefer-stable` for lowest dependencies). Both Composer downloads and lock files are cached separately by PHP version and dependency mode. New commits cancel superseded runs for the same ref.
 
 `.gitattributes` excludes tests, CI, contributor documentation, development scripts, PHPStan configuration and Git configuration files from distribution archives. The package retains `src/`, `composer.json`, `README.md` and `LICENSE`. Maintain the exclusions when adding, moving or removing development files, and inspect archive contents after changing the rules. The DressCode configuration is also excluded from distribution archives.

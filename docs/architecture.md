@@ -8,7 +8,7 @@ Each iteration of `FileReader` opens a resource and delegates to `StreamReader`.
 
 `StreamReader` accepts a resource containing decompressed TAR bytes. It does not rewind or close the caller's resource. Its generator reads 512-byte headers and yields `File` objects. Empty reads end iteration; all-zero blocks are skipped rather than treated as a mandatory two-block end marker. Short headers raise `InvalidArchiveFormatException`.
 
-`File` delegates name, size and type access to `Header`. Regular file types are `0` and the NUL byte; directory type is `5`. Other type flags remain available through `getType()`. Casting a `File` to string returns its name, not its content.
+`File` is a readonly class: its header and content references cannot be reassigned, but the referenced content still has a mutable stream lifecycle. Subclasses must also be readonly. It delegates name, size and type access to `Header`. Regular file types are `0` and the NUL byte; directory type is `5`. Other type flags remain available through `getType()`. Casting a `File` to string returns its name, not its content.
 
 ## Content lifecycle
 
@@ -21,6 +21,7 @@ Each iteration of `FileReader` opens a resource and delegates to `StreamReader`.
 - `toFile()` rejects closed content before opening the destination. Otherwise it opens the supplied path in `wb` mode, delegates to `toStream()` and closes the target even when export throws. It does not create directories or provide atomic writes: an export failure after opening can leave an existing file truncated or partially written.
 - `detach()` materializes content, rewinds a seekable internal stream, and transfers ownership to the caller. The caller must close the returned resource.
 - Advancing the archive iterator closes unconsumed content and skips its bytes and padding. Retaining a `File` does not retain unread archive content. Already materialized content remains usable until closed, exported, detached or destroyed.
+- `getMetadata()` materializes content and returns metadata of its internal PHP stream, not TAR header fields. Its `mixed` return type represents both the full metadata array and individual values. Only a null key requests the whole array; other keys return the matching value or `null` when absent, including empty-string and `"0"` keys.
 - `LazyContent::getSize()` emits a user warning and returns `null`; use `File::getSize()` for the declared entry size. Content is read-only; `write()` throws.
 
 The archive cursor advances by entry size plus padding to a 512-byte boundary. Content copies check the number of transferred bytes. Unused content and padding are read and discarded in chunks of at most 8192 bytes; missing bytes raise `InvalidArchiveFormatException` even during metadata-only traversal. This keeps memory bounded but requires reading skipped data rather than seeking over it. Arbitrary non-seekable resources are not guaranteed to work.
@@ -38,3 +39,5 @@ There is no archive-writing API or automatic filesystem extraction. Export paths
 ## Errors
 
 Library `InvalidArchiveFormatException` extends the library `RuntimeException`. Library `InvalidArgumentException` extends the library `LogicException`. `FileContentClosedException` directly extends PHP's `LogicException`, so catching the library `LogicException` does not catch it. `EofException` is an internal control signal caught by the reader. Underlying PHP stream operations can also emit warnings; do not assume every failure is normalized into a library exception.
+
+`LazyContent::read()` wraps any `Throwable` from materialization or `fread()` in the library `RuntimeException`, preserving the original throwable as `getPrevious()`. Native warnings without a throwing error handler are not converted by this catch.

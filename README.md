@@ -100,11 +100,11 @@ All public classes use the `JakubBoucek\Tar` namespace:
 
 Detailed documentation is available in the [GitHub repository](https://github.com/jakubboucek/php-tar-stream-reader):
 
-- [Architecture, content lifecycle and format limitations](https://github.com/jakubboucek/php-tar-stream-reader/blob/update/docs/architecture.md)
-- [Development and testing](https://github.com/jakubboucek/php-tar-stream-reader/blob/update/docs/development.md)
-- [Contributor and agent instructions](https://github.com/jakubboucek/php-tar-stream-reader/blob/update/AGENTS.md)
+- [Architecture, content lifecycle and format limitations](https://github.com/jakubboucek/php-tar-stream-reader/blob/master/docs/architecture.md)
+- [Development and testing](https://github.com/jakubboucek/php-tar-stream-reader/blob/master/docs/development.md)
+- [Contributor and agent instructions](https://github.com/jakubboucek/php-tar-stream-reader/blob/master/AGENTS.md)
 
-These links point to the `update` development branch. When investigating an installed package, use its matching release tag or the Composer source reference recorded in the consuming project's `composer.lock`. The installed source code is authoritative for that version. Detailed documentation and development tooling are intentionally omitted from distribution archives.
+These links point to the maintained `master` branch. When investigating an installed package, use its matching release tag or the Composer source reference recorded in the consuming project's `composer.lock`. The installed source code is authoritative for that version. Detailed documentation and development tooling are intentionally omitted from distribution archives.
 
 ## Contributing
 Please don't hesitate send Issue or Pull Request.
