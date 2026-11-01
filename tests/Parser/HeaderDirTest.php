@@ -21,12 +21,7 @@ class HeaderDirTest extends TestCase
         $source = fopen(__DIR__ . '/../assets/dir.tar', 'rb');
         $header = fread($source, 512);
         fclose($source);
-        $this->header = new Header($header);
-    }
-
-    public function testIsValid(): void
-    {
-        Assert::true($this->header->isValid());
+        $this->header = Header::fromTarString($header);
     }
 
     public function testIsDir(): void

@@ -32,7 +32,7 @@ readonly class File implements Stringable
     }
 
     /** Preferred typed access; use getType() when the original flag byte is needed. */
-    public function getTypeEnum(): ?EntryType
+    public function getTypeEnum(): EntryType
     {
         return $this->header->getTypeEnum();
     }

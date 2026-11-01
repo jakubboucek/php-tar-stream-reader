@@ -37,94 +37,99 @@ use function strlen;
     };
 */
 
+/** @internal */
 class Header
 {
     private const int NameFieldOffset = 0;
     private const int NameFieldLength = 100;
-
     private const int SizeFieldOffset = 124;
     private const int SizeFieldLength = 12;
-
     private const int TypeFieldOffset = 156;
-
     private const int MagicFieldOffset = 257;
     private const int MagicFieldLength = 6;
 
+    private readonly EntryType $typeEnum;
+
     public function __construct(
-        private readonly string $content,
-        private readonly ?string $paxPath = null,
-        private readonly ?int $paxSize = null,
+        private readonly string $name,
+        private readonly int $size,
+        private readonly string $type,
     ) {
+        if ($size < 0) {
+            throw new InvalidArgumentException('Header size must be nonnegative.');
+        }
+        if (strlen($type) !== 1) {
+            throw new InvalidArgumentException('Header type must be exactly one byte.');
+        }
+        $this->typeEnum = EntryType::tryFrom($type) ?? EntryType::Unknown;
+    }
+
+    /** Parse a physical TAR header, applying local PAX overrides only to ordinary entries. */
+    public static function fromTarString(string $content, ?string $paxPath = null, ?int $paxSize = null): self
+    {
         $length = strlen($content);
         if ($length !== 512) {
-            throw new InvalidArgumentException(sprintf('Tar header must be 512 bytes length, %d bytes got', $length));
+            throw new InvalidArchiveFormatException(
+                sprintf('Tar header must be 512 bytes length, %d bytes got', $length),
+            );
         }
+        $magic = rtrim(substr($content, self::MagicFieldOffset, self::MagicFieldLength));
+        if ($magic !== 'ustar') {
+            throw new InvalidArchiveFormatException('Invalid TAR archive format: Invalid Tar header magic.');
+        }
+        $type = $content[self::TypeFieldOffset];
+        if ((EntryType::tryFrom($type) ?? EntryType::Unknown)->isPax()) {
+            $paxPath = null;
+            $paxSize = null;
+        }
+        $name = $paxPath ?? rtrim(substr($content, self::NameFieldOffset, self::NameFieldLength), "\0");
+        $size = $paxSize ?? self::parseSize(substr($content, self::SizeFieldOffset, self::SizeFieldLength));
+        return new self($name, $size, $type);
     }
 
-    /** @internal */
-    public function withPax(?string $path, ?int $size): self
+    private static function parseSize(string $field): int
     {
-        return new self($this->content, $path, $size);
-    }
-
-    public function isValid(): bool
-    {
-        return $this->getMagic() === 'ustar';
+        $digits = rtrim($field);
+        if (preg_match('/^[0-7]+$/D', $digits) !== 1) {
+            throw new InvalidArchiveFormatException(
+                sprintf("Invalid Tar header format, file size must be octal number, '%s' got instead", $digits),
+            );
+        }
+        $size = octdec($digits);
+        if ($size > PHP_INT_MAX) {
+            throw new InvalidArchiveFormatException('Tar header size exceeds PHP_INT_MAX.');
+        }
+        return (int) $size;
     }
 
     public function getName(): string
     {
-        if ($this->paxPath !== null) {
-            return $this->paxPath;
-        }
-
-        $str = substr($this->content, self::NameFieldOffset, self::NameFieldLength);
-        return rtrim($str, "\0");
+        return $this->name;
     }
 
     public function getSize(): int
     {
-        if ($this->paxSize !== null) {
-            return $this->paxSize;
-        }
-
-        $str = rtrim(substr($this->content, self::SizeFieldOffset, self::SizeFieldLength));
-        if (preg_match('/^[0-7]+$/D', $str) !== 1) {
-            throw new InvalidArchiveFormatException(
-                sprintf(
-                    "Invalid Tar header format, file size must be octal number, '%s' got instead",
-                    $str,
-                ),
-            );
-        }
-
-        return (int) octdec($str);
+        return $this->size;
     }
 
     public function getType(): string
     {
-        return $this->content[self::TypeFieldOffset];
+        return $this->type;
     }
 
-    /** Preferred typed access; unknown flags return null, and legacy NUL means RegularFile. */
-    public function getTypeEnum(): ?EntryType
+    /** Preferred typed access; unrecognized flag bytes map to Unknown. */
+    public function getTypeEnum(): EntryType
     {
-        $type = $this->getType();
-        return $type === "\0" ? EntryType::RegularFile : EntryType::tryFrom($type);
+        return $this->typeEnum;
     }
 
     public function isFile(): bool
     {
-        return $this->getTypeEnum() === EntryType::RegularFile;
+        return $this->typeEnum->isFile();
     }
 
     public function isDir(): bool
     {
-        return $this->getTypeEnum() === EntryType::Directory;
-    }
-
-    protected function getMagic(): string
-    {
-        return rtrim(substr($this->content, self::MagicFieldOffset, self::MagicFieldLength));
+        return $this->typeEnum === EntryType::Directory;
     }
 }

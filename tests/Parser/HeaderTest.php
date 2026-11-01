@@ -22,7 +22,7 @@ class HeaderTest extends TestCase
     protected function setUp(): void
     {
         $header = file_get_contents(__DIR__ . '/../assets/header.bin');
-        $this->header = new Header($header);
+        $this->header = Header::fromTarString($header);
     }
 
     public function testTypeEnum(): void
@@ -30,7 +30,7 @@ class HeaderTest extends TestCase
         $raw = file_get_contents(__DIR__ . '/../assets/header.bin');
         $cases = [
             '0' => EntryType::RegularFile,
-            "\0" => EntryType::RegularFile,
+            "\0" => EntryType::ARegularFile,
             '1' => EntryType::HardLink,
             '2' => EntryType::SymbolicLink,
             '3' => EntryType::CharacterDevice,
@@ -40,21 +40,16 @@ class HeaderTest extends TestCase
             '7' => EntryType::ContiguousFile,
             'x' => EntryType::PaxExtendedHeader,
             'g' => EntryType::PaxGlobalHeader,
-            'Z' => null,
+            'Z' => EntryType::Unknown,
         ];
         foreach ($cases as $flag => $expected) {
             $flag = (string) $flag;
-            $header = new Header(substr_replace($raw, $flag, 156, 1));
+            $header = Header::fromTarString(substr_replace($raw, $flag, 156, 1));
             Assert::same($expected, $header->getTypeEnum());
             Assert::same($flag, $header->getType());
-            Assert::same($expected === EntryType::RegularFile, $header->isFile());
+            Assert::same($expected->isFile(), $header->isFile());
             Assert::same($expected === EntryType::Directory, $header->isDir());
         }
-    }
-
-    public function testIsValid(): void
-    {
-        Assert::true($this->header->isValid());
     }
 
     public function testIsDir(): void

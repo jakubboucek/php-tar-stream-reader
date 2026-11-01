@@ -53,6 +53,20 @@ class PaxStreamReaderTest extends TestCase
         }
     }
 
+    public function testPendingSizeDoesNotOverrideExtensionPayloadSizes(): void
+    {
+        $archive = $this->sizeArchive();
+        $global = file_get_contents(__DIR__ . '/assets/pax/global-comment.tar');
+        $archive = substr($archive, 0, 1024) . substr($global, 0, 1024) . $archive;
+        $this->withArchive($archive, function (StreamReader $reader): void {
+            $contents = [];
+            foreach ($reader as $file) {
+                $contents[$file->getName()] = (string) $file->getContent();
+            }
+            Assert::same(['first.txt' => 'abc', 'last.txt' => 'xyz'], $contents);
+        });
+    }
+
     public function testUnsupportedGlobalValues(): void
     {
         foreach (['global-size', 'global-path'] as $name) {

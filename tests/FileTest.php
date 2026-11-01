@@ -65,7 +65,7 @@ class FileTest extends TestCase
         $file = new File(new HeaderStub(self::TestName, self::TestSize, '5'), $stream);
         Assert::same(EntryType::Directory, $file->getTypeEnum());
         $unknown = new File(new HeaderStub(self::TestName, self::TestSize, 'Z'), $stream);
-        Assert::null($unknown->getTypeEnum());
+        Assert::same(EntryType::Unknown, $unknown->getTypeEnum());
         Assert::same('Z', $unknown->getType());
     }
 
