@@ -8,8 +8,9 @@ use Closure;
 use JakubBoucek\Tar\Exception\FileContentClosedException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
+use Stringable;
 
-class LazyContent implements LightStreamInterface
+class LazyContent implements LightStreamInterface, Stringable
 {
     private ?Closure $contentClosure;
     /** @var resource|null */
@@ -226,7 +227,7 @@ class LazyContent implements LightStreamInterface
         return $contents;
     }
 
-    public function getMetadata(?string $key = null)
+    public function getMetadata(?string $key = null): mixed
     {
         $stream = $this->getStream();
 

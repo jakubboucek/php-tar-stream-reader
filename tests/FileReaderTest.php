@@ -79,11 +79,17 @@ class TrackingPlainHandler extends Plain
     /** @var resource|null */
     public $stream;
 
+    /**
+     * @inheritDoc
+     */
     public function open(string $filename)
     {
         return $this->stream = parent::open($filename);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function close($stream): void
     {
         $this->closeCalls++;
