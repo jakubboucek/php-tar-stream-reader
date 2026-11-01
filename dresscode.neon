@@ -3,6 +3,7 @@ use:
     - modernizations
     - deprecations
     - cleanup
+    - correctness
 
 paths:
     - src
@@ -11,5 +12,6 @@ paths:
 
 naming:
     constant: PascalCase
+
 multiline:
     spreadAlways: [promotedProperty]
