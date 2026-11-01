@@ -4,6 +4,7 @@ use:
     - deprecations
     - cleanup
     - correctness
+    - types
 
 paths:
     - src
