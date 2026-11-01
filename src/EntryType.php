@@ -33,11 +33,15 @@ enum EntryType: string
     case ContiguousFile = '7';
     case PaxExtendedHeader = 'x';
     case PaxGlobalHeader = 'g';
-    case Unknown = '';
 
     public function isFile(): bool
     {
         return $this === self::RegularFile || $this === self::ARegularFile;
+    }
+
+    public function isDir(): bool
+    {
+        return $this === self::Directory;
     }
 
     public function isPax(): bool

@@ -20,7 +20,7 @@ This is `jakubboucek/tar-stream-reader`, a standalone, read-only PHP library for
 - [docs/pax-design.md](docs/pax-design.md): PAX support boundaries, fixture generation and deferred integration ideas.
 - `src/FileReader.php` and `src/StreamReader.php`: filename and resource entry points.
 - `src/File.php`: entry metadata and content access.
-- `src/Parser/`: eager header parsing through `Header::fromTarString()`, lazy content and single-use tracking.
+- `src/Parser/`: readonly `Header` metadata, eager decoding in `TarHeaderParser`, lazy content and single-use tracking. `Header::fromTarString(string)` accepts no PAX parameters; the reader passes PAX overrides directly to the parser. Unknown entry types are rejected.
 - `src/FileHandler/`: plain, gzip and bzip2 resource handling.
 - `tests/`: Nette Tester tests and committed binary fixtures.
 

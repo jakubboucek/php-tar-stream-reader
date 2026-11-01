@@ -67,6 +67,14 @@ class PaxStreamReaderTest extends TestCase
         });
     }
 
+    public function testUnknownTypeIsRejectedBeforeYield(): void
+    {
+        $archive = substr_replace($this->sizeArchive(), 'Z', 1024 + 156, 1);
+        $this->withArchive($archive, function (StreamReader $reader): void {
+            Assert::exception(fn() => $reader->getIterator()->current(), InvalidArchiveFormatException::class);
+        });
+    }
+
     public function testUnsupportedGlobalValues(): void
     {
         foreach (['global-size', 'global-path'] as $name) {

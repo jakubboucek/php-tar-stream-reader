@@ -40,41 +40,40 @@ class HeaderTest extends TestCase
             '7' => EntryType::ContiguousFile,
             'x' => EntryType::PaxExtendedHeader,
             'g' => EntryType::PaxGlobalHeader,
-            'Z' => EntryType::Unknown,
         ];
         foreach ($cases as $flag => $expected) {
             $flag = (string) $flag;
             $header = Header::fromTarString(substr_replace($raw, $flag, 156, 1));
-            Assert::same($expected, $header->getTypeEnum());
-            Assert::same($flag, $header->getType());
-            Assert::same($expected->isFile(), $header->isFile());
-            Assert::same($expected === EntryType::Directory, $header->isDir());
+            Assert::same($expected, $header->type);
+            Assert::same($flag, $header->type->value);
+            Assert::same($expected->isFile(), $header->type->isFile());
+            Assert::same($expected === EntryType::Directory, $header->type->isDir());
         }
     }
 
     public function testIsDir(): void
     {
-        Assert::false($this->header->isDir());
+        Assert::false($this->header->type->isDir());
     }
 
     public function testIsFile(): void
     {
-        Assert::true($this->header->isFile());
+        Assert::true($this->header->type->isFile());
     }
 
     public function testGetSize(): void
     {
-        Assert::same(0, $this->header->getSize());
+        Assert::same(0, $this->header->size);
     }
 
     public function testGetName(): void
     {
-        Assert::same('empty.txt', $this->header->getName());
+        Assert::same('empty.txt', $this->header->name);
     }
 
     public function testGetType(): void
     {
-        Assert::true(in_array($this->header->getType(), ['0', "\0"], true));
+        Assert::true(in_array($this->header->type->value, ['0', "\0"], true));
     }
 }
 

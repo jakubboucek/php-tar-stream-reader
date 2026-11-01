@@ -11,6 +11,7 @@ use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
 use JakubBoucek\Tar\Parser\Header;
+use JakubBoucek\Tar\Parser\TarHeaderParser;
 use JakubBoucek\Tar\Parser\LazyContent;
 use JakubBoucek\Tar\Parser\PaxHeader;
 use JakubBoucek\Tar\Exception\NotImplementedException;
@@ -56,7 +57,7 @@ class StreamReader implements IteratorAggregate
 
             $usage = new Usage();
 
-            $contentSize = $header->getSize();
+            $contentSize = $header->size;
             $contentPadding = ($contentSize % 512) === 0 ? 0 : 512 - ($contentSize % 512);
 
             // Closure to lazy read, prevents backwards seek or repeated reads of discharged content
@@ -169,13 +170,15 @@ class StreamReader implements IteratorAggregate
                 }
                 throw $exception;
             }
-            $header = Header::fromTarString($rawHeader, $metadata['path'] ?? null, $metadata['size'] ?? null);
-            $type = $header->getTypeEnum();
-            if ($type !== EntryType::PaxExtendedHeader && $type !== EntryType::PaxGlobalHeader) {
+            $header = TarHeaderParser::parse($rawHeader, $metadata);
+
+            if (!$header->type->isPax()) {
                 return $header;
             }
 
-            $size = $header->getSize();
+            // PAX processing
+
+            $size = $header->size;
             if ($size > PaxHeader::MaxPayloadSize) {
                 throw new NotImplementedException('PAX payloads larger than 1 MiB are not supported.');
             }
@@ -189,9 +192,9 @@ class StreamReader implements IteratorAggregate
                 $payload .= $chunk;
                 $remaining -= strlen($chunk);
             }
-            $values = PaxHeader::parse($payload, $type === EntryType::PaxGlobalHeader);
+            $values = PaxHeader::parse($payload, $header->type === EntryType::PaxGlobalHeader);
             $this->discardBytes((512 - ($size % 512)) % 512);
-            if ($type === EntryType::PaxExtendedHeader) {
+            if ($header->type === EntryType::PaxExtendedHeader) {
                 $metadata = array_replace($metadata, $values);
                 $pendingLocal = true;
             }

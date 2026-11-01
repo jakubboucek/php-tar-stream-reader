@@ -96,7 +96,7 @@ All public classes use the `JakubBoucek\Tar` namespace:
 | `FileReader` | Iterate over an archive by filename, with automatic compression handler selection or an explicit handler. |
 | `StreamReader` | Iterate over an open resource containing decompressed TAR bytes. The caller owns and closes the resource. |
 | `File` | Read entry metadata through `getName()`, `getSize()`, `getTypeEnum()`, `isFile()` and `isDir()`. `getType()` preserves the original flag byte. |
-| `EntryType` | Recognized TAR types returned by `getTypeEnum()`; unknown flags return `Unknown`; the legacy NUL flag maps to `ARegularFile`. Both regular-file cases satisfy `EntryType::isFile()`. |
+| `EntryType` | Recognized TAR types returned by `getTypeEnum()`; unknown flags are rejected while parsing; the legacy NUL flag maps to `ARegularFile`. Both regular-file cases satisfy `EntryType::isFile()`. |
 | `Parser\LightStreamInterface` | Access entry content through `File::getContent()`. Extends PSR-7 `StreamInterface` with `toStream()` and `toFile()`. |
 
 ## Documentation and source
