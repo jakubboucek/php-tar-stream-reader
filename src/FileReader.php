@@ -18,15 +18,11 @@ class FileReader implements IteratorAggregate
         private readonly string $filename,
         ?FileHandler\FileHandler $handler = null,
     ) {
-        if (!$handler) {
-            $handler = match (true) {
-                FileHandler\Gzip::match($filename) => new FileHandler\Gzip(),
-                FileHandler\Bz2::match($filename) => new FileHandler\Bz2(),
-                default => new FileHandler\Plain(),
-            };
-        }
-
-        $this->handler = $handler;
+        $this->handler = $handler ?? match (true) {
+            FileHandler\Gzip::match($filename) => new FileHandler\Gzip(),
+            FileHandler\Bz2::match($filename) => new FileHandler\Bz2(),
+            default => new FileHandler\Plain(),
+        };
     }
 
     /**
