@@ -10,6 +10,8 @@ use JakubBoucek\Tar\Parser\Header;
 use Tester\Assert;
 use Tester\TestCase;
 
+use function in_array;
+
 require __DIR__ . '/../bootstrap.php';
 
 class HeaderTest extends TestCase

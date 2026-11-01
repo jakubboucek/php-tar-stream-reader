@@ -7,6 +7,9 @@ namespace JakubBoucek\Tar\Parser;
 use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 
+use function sprintf;
+use function strlen;
+
 /*
     TAR HEADER FORMAT
     POSIX header

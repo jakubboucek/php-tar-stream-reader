@@ -14,6 +14,10 @@ use JakubBoucek\Tar\Parser\Header;
 use JakubBoucek\Tar\Parser\LazyContent;
 use JakubBoucek\Tar\Parser\Usage;
 
+use function is_resource;
+use function sprintf;
+use function strlen;
+
 /**
  * @implements IteratorAggregate<File>
  */

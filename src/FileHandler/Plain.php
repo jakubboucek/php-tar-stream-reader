@@ -6,6 +6,8 @@ namespace JakubBoucek\Tar\FileHandler;
 
 use JakubBoucek\Tar\Exception\RuntimeException;
 
+use function is_resource;
+
 class Plain implements FileHandler
 {
     /**

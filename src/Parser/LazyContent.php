@@ -10,6 +10,9 @@ use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
 use Stringable;
 
+use function is_resource;
+use function sprintf;
+
 class LazyContent implements LightStreamInterface, Stringable
 {
     private ?Closure $contentClosure;

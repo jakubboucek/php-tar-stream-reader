@@ -12,6 +12,9 @@ use JakubBoucek\Tar\FileReader;
 use Tester\Assert;
 use Tester\TestCase;
 
+use function gettype;
+use function is_resource;
+
 require __DIR__ . '/bootstrap.php';
 
 class FileReaderTest extends TestCase

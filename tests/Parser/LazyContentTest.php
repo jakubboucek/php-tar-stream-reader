@@ -13,6 +13,10 @@ use JakubBoucek\Tar\Parser\LazyContent;
 use Tester\Assert;
 use Tester\TestCase;
 
+use function gettype;
+use function is_resource;
+use function strlen;
+
 require __DIR__ . '/../bootstrap.php';
 
 class LazyContentTest extends TestCase

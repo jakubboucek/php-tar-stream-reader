@@ -9,6 +9,9 @@ namespace JakubBoucek\Tar\FileHandler;
 use JakubBoucek\Tar\Exception\LogicException;
 use JakubBoucek\Tar\Exception\RuntimeException;
 
+use function function_exists;
+use function is_resource;
+
 class Gzip implements FileHandler
 {
     public static function match(string $filename): bool

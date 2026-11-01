@@ -13,6 +13,8 @@ use JakubBoucek\Tar\StreamReader;
 use Tester\Assert;
 use Tester\TestCase;
 
+use function extension_loaded;
+
 require __DIR__ . '/bootstrap.php';
 
 class StreamReaderTest extends TestCase
