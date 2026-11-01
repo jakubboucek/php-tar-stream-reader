@@ -5,11 +5,14 @@ use:
     - cleanup
     - correctness
     - types
+    - compilerOptimizations
 
 paths:
     - src
     - tests
     - example.php
+
+nameResolution: certain
 
 naming:
     constant: PascalCase
