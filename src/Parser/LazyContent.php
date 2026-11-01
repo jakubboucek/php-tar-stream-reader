@@ -234,7 +234,7 @@ class LazyContent implements LightStreamInterface, Stringable
     {
         $stream = $this->getStream();
 
-        if (!$key) {
+        if ($key === null) {
             return stream_get_meta_data($stream);
         }
 

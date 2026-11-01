@@ -356,6 +356,26 @@ class LazyContentTest extends TestCase
         Assert::same('MEMORY', $this->content->getMetadata('stream_type'));
     }
 
+    public function testGetMetadataNullKey(): void
+    {
+        Assert::same('MEMORY', $this->content->getMetadata()['stream_type']);
+    }
+
+    public function testGetMetadataEmptyKey(): void
+    {
+        Assert::null($this->content->getMetadata(''));
+    }
+
+    public function testGetMetadataZeroKey(): void
+    {
+        Assert::null($this->content->getMetadata('0'));
+    }
+
+    public function testGetMetadataMissingKey(): void
+    {
+        Assert::null($this->content->getMetadata('missing'));
+    }
+
     public function testGetContents(): void
     {
         Assert::same(self::TestString, $this->content->getContents());
