@@ -12,6 +12,7 @@ paths:
     - tests
     - example.php
 
+typeAnalysis: phpstan
 nameResolution: certain
 
 naming:
