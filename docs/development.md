@@ -33,13 +33,13 @@ Run `composer dresscode` to check or `composer dresscode:fix` to format. The Doc
 
 All six additional sets are enabled: `modernizations`, `deprecations`, `cleanup`, `correctness`, `types` and `compilerOptimizations`. These can change declarations and behavior, not just whitespace; inspect changes to public API and exception handling before accepting them. Risky fixes and a baseline are not enabled. The target PHP version comes from Composer and remains PHP 8.4. Line length uses the preset's soft warning; warnings alone do not fail the check. Review formatting changes and run tests and PHPStan after broad formatting.
 
-PHPStan type inference is enabled explicitly through `typeAnalysis: phpstan`; the `types` set alone would not enable it. CI runs DressCode with `--no-cache` so changes in other classes or PHPStan configuration are considered. `no effect: php` in the resolved configuration correctly skips syntax newer than the PHP 8.4 target.
+PHPStan type inference is enabled through `typeAnalysis: phpstan`. CI runs DressCode with `--no-cache` so changes in other classes or PHPStan configuration are considered. `no effect: php` in the resolved configuration skips syntax newer than the PHP 8.4 target.
 
 `nameResolution: certain` asserts that bare function and constant names can be resolved with the configured namespace declarations. The library currently declares no namespace-level functions or constants. If any are added, update the `namespaces` configuration before trusting related rewrites. `use function` imports from compiler optimizations bypass namespace fallback and must not be treated as interchangeable with consumer-provided function shims.
 
 After changing presets, run `vendor/bin/dresscode config` to verify the effective decisions and `vendor/bin/dresscode check --no-cache` to audit all files. A clean check is not proof that every available decision ran. Use `explain <decision>` for the installed version; online documentation may describe newer CLI features.
 
-DressCode is pinned because this library does not commit its lock file and new tool versions can add preset rules. Review its diff when updating. Agent hooks are optional and do not replace the full check; shell edits are not covered by the upstream hook.
+Review changes to preset rules when updating DressCode. Agent hooks are optional and do not replace the full check; shell edits are not covered by the upstream hook.
 
 ## Tests and fixtures
 

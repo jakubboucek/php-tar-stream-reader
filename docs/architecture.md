@@ -26,9 +26,7 @@ Each iteration of `FileReader` opens a resource and delegates to `StreamReader`.
 
 The archive cursor advances by entry size plus padding to a 512-byte boundary. Content copies check the number of transferred bytes. Unused content and padding are read and discarded in chunks of at most 8192 bytes; missing bytes raise `InvalidArchiveFormatException` even during metadata-only traversal. This keeps memory bounded but requires reading skipped data rather than seeking over it. Arbitrary non-seekable resources are not guaranteed to work.
 
-## Format boundaries and areas requiring care
-
-These are current implementation limits, not guarantees to preserve when fixing a bug:
+## Format support and limitations
 
 - Header validation checks only the `ustar` magic. Checksums are not validated. Size is parsed only as octal; PAX size overrides and GNU base-256 sizes are not implemented.
 - Names come only from the first 100 header bytes. The USTAR prefix, PAX `path` and GNU long-name records are not applied. Link targets and filesystem metadata are not exposed through `File`.
