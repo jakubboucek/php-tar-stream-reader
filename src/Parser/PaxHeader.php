@@ -13,7 +13,7 @@ use function strlen;
 use const PHP_INT_MAX;
 
 /** @internal */
-final class PaxHeader
+class PaxHeader
 {
     public const int MaxPayloadSize = 1048576;
 

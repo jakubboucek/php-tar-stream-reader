@@ -8,6 +8,7 @@
 - Preserve PHP 8.4 compatibility (`composer.json` requires `^8.4`); CI tests PHP 8.4–8.6. Use strict types and the DressCode `perCs` preset (PER Coding Style 3.1), with PascalCase constants and multiline promoted parameters as configured in `dresscode.neon`. All six additional DressCode sets are enabled; review API and behavior changes produced by automatic fixes. Avoid unrelated formatting changes.
 - Keep `nameResolution: certain` accurate when adding namespace-level functions or constants. PHPStan inference is enabled through `typeAnalysis: phpstan`; run DressCode with `--no-cache` for final verification to account for cross-file and PHPStan configuration changes.
 - Prefer native types where PHP 8.4 supports them; retain PHPDoc for resources and collection types.
+- Do not add `final` to classes, including test doubles. Testability must not determine production inheritance restrictions. Use explicit API documentation and `@internal` to describe intended usage; `final` is not an API visibility boundary.
 
 ## Project map
 

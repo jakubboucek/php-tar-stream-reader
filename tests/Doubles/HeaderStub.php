@@ -7,7 +7,7 @@ namespace JakubBoucek\Tar\Tests\Doubles;
 use JakubBoucek\Tar\Parser\Header;
 
 /** Metadata-only double; intentionally bypasses binary header parsing. */
-final class HeaderStub extends Header
+class HeaderStub extends Header
 {
     public bool $regular = true;
     public bool $directory = true;
