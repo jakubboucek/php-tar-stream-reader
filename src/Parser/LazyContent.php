@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace JakubBoucek\Tar\Parser;
 
 use Closure;
-use Exception;
 use JakubBoucek\Tar\Exception\FileContentClosedException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
@@ -204,7 +203,7 @@ class LazyContent implements LightStreamInterface
 
         try {
             $string = fread($this->getStream(), $length);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             throw new RuntimeException('Unable to read from stream', 0, $e);
         }
 
