@@ -43,6 +43,8 @@ Review changes to preset rules when updating DressCode. Agent hooks are optional
 
 ## Tests and fixtures
 
+- `PaxHeaderTest` covers record framing, numeric validation and explicit support boundaries. `PaxStreamReaderTest` reads GNU tar fixtures across plain, gzip and bzip2 streams and checks padding, overrides, truncation and content lifetime. [Fixture generation instructions](../tests/assets/pax/README.md) describe the independent Python verification; the default test suite only reads committed files.
+
 - `StreamReaderTest` checks archive metadata and content hashes against committed `.tgz` archives and JSON manifests for entry sizes 0 through 1024 bytes, including block boundaries. It also checks complete traversal, skipped-content lifetime, short headers, invalid magic and truncated content or padding, with both content reads and metadata-only traversal across plain, gzip and bzip2 archives.
 - `FileReaderTest` checks that the handler closes its resource exactly once after exhaustion, early termination and parser or consumer exceptions.
 - `FileTest` checks metadata delegation using `tests/Doubles/HeaderStub.php` and verifies content object identity without triggering lazy loading. The stub keeps file/directory flags independent of the raw type to detect incorrect delegation.

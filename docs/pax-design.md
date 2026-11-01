@@ -1,6 +1,6 @@
-# PAX implementation requirements
+# PAX scope and verification
 
-PAX metadata is currently unsupported. This document records constraints for a future implementation; it does not describe an available API.
+The reader applies local PAX `path` and `size` internally through the existing `File` API. Other metadata remains unexposed.
 
 ## References
 
@@ -13,18 +13,18 @@ PAX metadata is currently unsupported. This document records constraints for a f
 - Parse `<length> <keyword>=<value>\n` by the declared byte length, including its decimal prefix, space and final newline. Values may contain newlines and equals signs. Splitting the payload into lines can turn value bytes into false metadata records.
 - Validate framing, decimal lengths, complete reads and the final newline. Skip unsupported keywords by their record boundaries, without interpreting their values as additional records.
 - Validate `size` as a nonnegative decimal integer before conversion, including overflow against the supported integer range. An empty value is a deletion instruction, not numeric zero.
-- Keep absent, set and deleted values distinct. Apply the POSIX deletion and precedence rules explicitly; do not accidentally restore an overridden USTAR field or treat deletion as an ordinary empty path.
-- Decide and document encoding behavior, including UTF-8 and `hdrcharset=BINARY`, before claiming path support. Raw archive metadata must not silently undergo lossy conversion.
+- The final value of each supported key wins within a local header. Empty local `path`/`size` values raise `NotImplementedException`; they are not interpreted as zero or as a fallback to USTAR metadata.
+- Names retain their original bytes without charset conversion, including `hdrcharset=BINARY`. The reader does not decode names into local filesystem paths.
 
 ## Archive integration
 
 - An `x` header applies to the following file. Decode local `size` and `path`; later duplicate records take precedence within the header.
-- The initial implementation will inspect global `g` records and reject any occurrence of `size` or `path` with a dedicated not-implemented exception, including empty values and values overridden locally. Other global records can be skipped, subject to the explicit filename encoding policy. Global size and path are valid format features; rejection is a deliberate support boundary, not a malformed-archive diagnosis.
+- The reader inspects global `g` records and rejects any occurrence of `size` or `path` with a dedicated not-implemented exception, including empty values and values overridden locally. Other global records are skipped under the raw-byte filename policy. Global size and path are valid format features; rejection is a deliberate support boundary, not a malformed-archive diagnosis.
 - Read extension payloads using the physical extension header's size. Resolve the following file's effective size before calculating its content boundary and padding.
 - Padding is `(512 - (size % 512)) % 512`; exact multiples of 512 require no padding.
 - Validate skipped bytes by reading them, as the current reader does. Seeking past EOF does not establish that bytes existed. Distinguish an incomplete extension or missing following file from normal archive completion.
 - Use an iterative metadata-processing loop with explicit next-entry state rather than recursively reading headers. No global size/path state is needed under the rejection policy.
-- Preserve bounded memory use. Do not allocate an arbitrary declared extension size in one `fread()`; decode incrementally or define an explicit resource limit with a clear exception.
+- Each extension payload is limited to 1 MiB; larger declarations raise `NotImplementedException` before allocating the payload. Supported payloads are read in chunks and decoded in memory.
 - Separate raw TAR headers, PAX record decoding and effective entry metadata. Preserve the current lazy content and export lifecycle.
 - Treat direct resource access as a separate API design problem. It requires ownership, invalidation, buffering, EOF and seeking rules; it is not required to support PAX sizes.
 
@@ -48,7 +48,7 @@ Use GNU tar `--format=posix` or BSD tar `--format=pax`. A long single filename c
 GNU tar can force selected records for small files. With a three-byte `file.txt`:
 
 ```sh
-tar --format=posix --pax-option=size:=3 -cf local-size.tar file.txt
+tar --format=posix --mtime=@0.25 --pax-option=size:=3 -cf local-size.tar file.txt
 tar --format=posix --pax-option=comment=fixture -cf global-comment.tar file.txt
 tar --format=posix --pax-option=size=3 -cf global-size.tar file.txt
 tar --format=posix --pax-option=path=renamed.txt -cf global-path.tar file.txt
