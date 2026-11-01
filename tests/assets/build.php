@@ -18,7 +18,7 @@ for ($i = 0; $i <= 1024; $i++) {
 
 file_put_contents(
     __DIR__ . '/test-archive-random.json',
-    json_encode($files, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+    json_encode($files, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
 );
 
 $list = implode(' ', array_map(fn($file) => $file['file'], $files));

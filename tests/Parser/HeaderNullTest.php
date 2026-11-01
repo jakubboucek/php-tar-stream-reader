@@ -1,12 +1,17 @@
 <?php
 
+/** @testCase */
+
 declare(strict_types=1);
 
 namespace JakubBoucek\Tar\Tests\Parser;
 
 use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
 use JakubBoucek\Tar\Parser\Header;
-use PHPUnit\Framework\TestCase;
+use Tester\Assert;
+use Tester\TestCase;
+
+require __DIR__ . '/../bootstrap.php';
 
 class HeaderNullTest extends TestCase
 {
@@ -22,13 +27,16 @@ class HeaderNullTest extends TestCase
 
     public function testIsValid(): void
     {
-        $this->assertFalse($this->header->isValid());
+        Assert::false($this->header->isValid());
     }
 
     public function testGetSize(): void
     {
-        $this->expectException(InvalidArchiveFormatException::class);
-        $this->header->getSize();
+        Assert::exception(
+            fn() => $this->header->getSize(),
+            InvalidArchiveFormatException::class,
+        );
     }
-
 }
+
+new HeaderNullTest()->run();

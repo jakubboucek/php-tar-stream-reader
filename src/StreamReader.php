@@ -14,6 +14,10 @@ use JakubBoucek\Tar\Parser\Header;
 use JakubBoucek\Tar\Parser\LazyContent;
 use JakubBoucek\Tar\Parser\Usage;
 
+use function is_resource;
+use function sprintf;
+use function strlen;
+
 /**
  * @implements IteratorAggregate<File>
  */
@@ -52,8 +56,8 @@ class StreamReader implements IteratorAggregate
                 throw new InvalidArchiveFormatException(
                     sprintf(
                         'Invalid TAR archive format: Invalid Tar header format: at %s. bytes',
-                        $blockStart
-                    )
+                        $blockStart,
+                    ),
                 );
             }
 
@@ -73,7 +77,7 @@ class StreamReader implements IteratorAggregate
                 $isExternal = is_resource($target) && get_resource_type($target);
                 $stream = $isExternal ? $target : fopen('php://temp', 'wb+');
 
-                if(!$stream) {
+                if (!$stream) {
                     throw new RuntimeException('Unable to create temporary stream.');
                 }
 
@@ -87,11 +91,12 @@ class StreamReader implements IteratorAggregate
                 if ($bytes !== $contentSize) {
                     throw new InvalidArchiveFormatException(
                         sprintf(
-                            'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes, only %d bytes read',
+                            'Invalid TAR archive format: Unexpected end of file at position: '
+                            . '%s, expected %d bytes, only %d bytes read',
                             $blockStart,
                             $contentSize,
-                            ($bytes ?: 0)
-                        )
+                            ($bytes ?: 0),
+                        ),
                     );
                 }
 
@@ -105,43 +110,55 @@ class StreamReader implements IteratorAggregate
                 }
 
                 // Skip padding
-                $bytes = fseek($this->stream, $contentPadding, SEEK_CUR);
-
-                if ($bytes === -1) {
-                    throw new InvalidArchiveFormatException(
-                        sprintf(
-                            'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of block padding',
-                            $blockStart,
-                            $contentPadding,
-                        )
-                    );
-                }
+                $this->discardBytes($contentPadding);
 
                 return $stream;
             };
 
             $content = new LazyContent($contentClosure);
-            yield new File($header, $content);
-
-            // Seek after unused content
-            if (!$usage->used()) {
-                $usage->use();
-                $content->close();
-                if ($contentSize) {
-                    // Skip unused content
-                    $bytes = fseek($this->stream, $contentSize + $contentPadding, SEEK_CUR);
-
-                    if ($bytes === -1) {
-                        throw new InvalidArchiveFormatException(
-                            sprintf(
-                                'Invalid TAR archive format: Unexpected end of file at position: %s, expected %d bytes of content and block padding',
-                                $blockStart,
-                                $contentSize + $contentPadding,
-                            )
-                        );
-                    }
+            try {
+                yield new File($header, $content);
+            } finally {
+                // Unread content cannot outlive its archive position or generator.
+                if (!$usage->used()) {
+                    $content->close();
                 }
             }
+
+            // Discard unused content
+            if (!$usage->used()) {
+                $usage->use();
+                if ($contentSize) {
+                    // Skip unused content
+                    $this->discardBytes($contentSize + $contentPadding);
+                }
+            }
+        }
+    }
+
+    /**
+     * Reads and discards unused content or padding in chunks of at most 8 KiB.
+     * Unlike seeking, reading verifies that the skipped bytes actually exist,
+     * while keeping memory usage bounded regardless of the requested length.
+     */
+    private function discardBytes(int $length): void
+    {
+        $start = ftell($this->stream);
+        $remaining = $length;
+        while ($remaining > 0) {
+            $chunk = fread($this->stream, min(8192, $remaining));
+            if ($chunk === false || $chunk === '') {
+                throw new InvalidArchiveFormatException(
+                    sprintf(
+                        'Invalid TAR archive format: Unexpected end of file at position: '
+                        . '%s, expected %d bytes to discard, only %d bytes read',
+                        $start,
+                        $length,
+                        $length - $remaining,
+                    ),
+                );
+            }
+            $remaining -= strlen($chunk);
         }
     }
 
@@ -158,8 +175,8 @@ class StreamReader implements IteratorAggregate
                 throw new InvalidArchiveFormatException(
                     sprintf(
                         'Invalid TAR archive format: Unexpected end of file, returned non-block size: %d bytes',
-                        $header === false ? 0 : strlen($header)
-                    )
+                        $header === false ? 0 : strlen($header),
+                    ),
                 );
             }
         } while (self::isNullFilled($header));

@@ -6,21 +6,14 @@ namespace JakubBoucek\Tar;
 
 use JakubBoucek\Tar\Parser\LightStreamInterface;
 use JakubBoucek\Tar\Parser\Header;
+use Stringable;
 
-class File
+readonly class File implements Stringable
 {
-    private Header $header;
-    private LightStreamInterface $content;
-
-    /**
-     * @param Header $header
-     * @param LightStreamInterface $content
-     */
-    public function __construct(Header $header, LightStreamInterface $content)
-    {
-        $this->header = $header;
-        $this->content = $content;
-    }
+    public function __construct(
+        private Header $header,
+        private LightStreamInterface $content,
+    ) {}
 
     public function __toString(): string
     {

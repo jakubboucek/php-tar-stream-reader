@@ -10,7 +10,6 @@ interface LightStreamInterface extends StreamInterface
 {
     /**
      * @param resource $stream
-     * @return void
      */
     public function toStream($stream): void;
 

@@ -7,7 +7,6 @@ namespace JakubBoucek\Tar\FileHandler;
 interface FileHandler
 {
     /**
-     * @param string $filename
      * @return resource
      */
     public function open(string $filename);

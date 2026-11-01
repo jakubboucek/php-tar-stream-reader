@@ -1,0 +1,22 @@
+use:
+    - perCs
+    - modernizations
+    - deprecations
+    - cleanup
+    - correctness
+    - types
+    - compilerOptimizations
+
+paths:
+    - src
+    - tests
+    - example.php
+
+typeAnalysis: phpstan
+nameResolution: certain
+
+naming:
+    constant: PascalCase
+
+multiline:
+    spreadAlways: [promotedProperty]

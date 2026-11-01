@@ -19,7 +19,7 @@ class Usage
     {
         if ($this->used) {
             throw new FileContentClosedException(
-                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
             );
         }
 

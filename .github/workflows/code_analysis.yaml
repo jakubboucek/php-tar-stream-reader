@@ -6,6 +6,13 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   code_analysis:
     strategy:
@@ -19,18 +26,20 @@ jobs:
             run: composer test
 
         php:
-          - '8.0'
-          - '8.1'
-          - '8.2'
-          - '8.3'
           - '8.4'
+          - '8.5'
+          - '8.6'
 
-    name: ${{ matrix.actions.name }} at PHP ${{ matrix.php }}
+        dependencies: [highest, lowest]
+
+    name: ${{ matrix.actions.name }} at PHP ${{ matrix.php }} (${{ matrix.dependencies }})
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
         # see https://github.com/shivammathur/setup-php
@@ -38,20 +47,59 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
+          extensions: bz2, zlib
 
       # see https://github.com/actions/cache/blob/main/examples.md#php---composer
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v2
+          echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
         with:
           path: |
             ${{ steps.composer-cache.outputs.dir }}
             **/composer.lock
-          key: ${{ runner.os }}-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-${{ matrix.php }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
 
-      - name: Install Composer
-        run: composer update --no-progress
+      - name: Validate Composer configuration
+        run: composer validate --no-check-lock
+
+      - name: Install dependencies
+        run: composer update --no-interaction --prefer-dist --no-progress ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
 
       - run: ${{ matrix.actions.run }}
+
+
+  code_style:
+    name: Code style
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            **/composer.lock
+          key: ${{ runner.os }}-8.4-highest-composer-${{ hashFiles('**/composer.json') }}
+
+      - name: Install dependencies
+        run: composer update --no-interaction --prefer-dist --no-progress
+
+      - name: Check code style
+        run: composer dresscode -- --no-cache

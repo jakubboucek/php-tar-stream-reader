@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpComposerExtensionStubsInspection */
 
 declare(strict_types=1);
@@ -8,11 +9,14 @@ namespace JakubBoucek\Tar\FileHandler;
 use JakubBoucek\Tar\Exception\LogicException;
 use JakubBoucek\Tar\Exception\RuntimeException;
 
+use function function_exists;
+use function is_resource;
+
 class Bz2 implements FileHandler
 {
     public static function match(string $filename): bool
     {
-        return (bool)preg_match('/\.t?bz2?$/D', $filename);
+        return (bool) preg_match('/\.t?bz2?$/D', $filename);
     }
 
     /**
@@ -22,7 +26,7 @@ class Bz2 implements FileHandler
     {
         if (!self::isAvailable()) {
             throw new LogicException(
-                __CLASS__ . " requires `ext-bz2` extension to open BZ2 compressed archive: '$filename'"
+                self::class . " requires `ext-bz2` extension to open BZ2 compressed archive: '$filename'",
             );
         }
 

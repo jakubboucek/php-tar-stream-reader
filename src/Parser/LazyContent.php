@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace JakubBoucek\Tar\Parser;
 
 use Closure;
-use Exception;
 use JakubBoucek\Tar\Exception\FileContentClosedException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
+use Stringable;
 
-class LazyContent implements LightStreamInterface
+use function is_resource;
+use function sprintf;
+
+class LazyContent implements LightStreamInterface, Stringable
 {
     private ?Closure $contentClosure;
     /** @var resource|null */
@@ -37,13 +40,12 @@ class LazyContent implements LightStreamInterface
 
     /**
      * @param resource $stream
-     * @return void
      */
     public function toStream($stream): void
     {
         if ($this->isClosed()) {
             throw new FileContentClosedException(
-                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
             );
         }
 
@@ -71,17 +73,26 @@ class LazyContent implements LightStreamInterface
     }
 
     /**
-     * @param resource|null $context Stream context (e.g. from `stream_context_create()`)
+     * @inheritDoc
      */
     public function toFile(string $file, $context = null): void
     {
+        if ($this->isClosed()) {
+            throw new FileContentClosedException(
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
+            );
+        }
+
         $stream = fopen($file, 'wb', false, $context);
         if (!is_resource($stream)) {
             throw new InvalidArgumentException("Unable to open file: '$file'");
         }
 
-        $this->toStream($stream);
-        fclose($stream);
+        try {
+            $this->toStream($stream);
+        } finally {
+            fclose($stream);
+        }
     }
 
     public function isLoaded(): bool
@@ -144,7 +155,7 @@ class LazyContent implements LightStreamInterface
 
     public function isSeekable(): bool
     {
-        return (bool)stream_get_meta_data($this->getStream())['seekable'];
+        return (bool) stream_get_meta_data($this->getStream())['seekable'];
     }
 
     public function seek(int $offset, int $whence = SEEK_SET): void
@@ -157,8 +168,8 @@ class LazyContent implements LightStreamInterface
                 sprintf(
                     "Unable to seek to stream position %d with whence %s",
                     $offset,
-                    var_export($whence, true)
-                )
+                    var_export($whence, true),
+                ),
             );
         }
     }
@@ -196,7 +207,7 @@ class LazyContent implements LightStreamInterface
 
         try {
             $string = fread($this->getStream(), $length);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             throw new RuntimeException('Unable to read from stream', 0, $e);
         }
 
@@ -219,11 +230,11 @@ class LazyContent implements LightStreamInterface
         return $contents;
     }
 
-    public function getMetadata(?string $key = null)
+    public function getMetadata(?string $key = null): mixed
     {
         $stream = $this->getStream();
 
-        if (!$key) {
+        if ($key === null) {
             return stream_get_meta_data($stream);
         }
 
@@ -238,7 +249,7 @@ class LazyContent implements LightStreamInterface
     {
         if ($this->isClosed()) {
             throw new FileContentClosedException(
-                "File's Content is already closed, try to fetch it right after File fetched from Reader."
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
             );
         }
 

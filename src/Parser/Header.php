@@ -7,6 +7,9 @@ namespace JakubBoucek\Tar\Parser;
 use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 
+use function sprintf;
+use function strlen;
+
 /*
     TAR HEADER FORMAT
     POSIX header
@@ -35,16 +38,13 @@ use JakubBoucek\Tar\Exception\InvalidArgumentException;
 
 class Header
 {
-    private string $content;
-
-    public function __construct(string $content)
-    {
+    public function __construct(
+        private readonly string $content,
+    ) {
         $length = strlen($content);
         if ($length !== 512) {
             throw new InvalidArgumentException(sprintf('Tar header must be 512 bytes length, %d bytes got', $length));
         }
-
-        $this->content = $content;
     }
 
     public function isValid(): bool
@@ -65,12 +65,12 @@ class Header
             throw new InvalidArchiveFormatException(
                 sprintf(
                     "Invalid Tar header format, file size must be octal number, '%s' got instead",
-                    $str
-                )
+                    $str,
+                ),
             );
         }
 
-        return (int)octdec($str);
+        return (int) octdec($str);
     }
 
     /*

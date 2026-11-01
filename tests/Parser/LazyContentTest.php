@@ -1,5 +1,7 @@
 <?php
 
+/** @testCase */
+
 declare(strict_types=1);
 
 namespace JakubBoucek\Tar\Tests\Parser;
@@ -8,8 +10,14 @@ use JakubBoucek\Tar\Exception\FileContentClosedException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
 use JakubBoucek\Tar\Parser\LazyContent;
-use JakubBoucek\Tar\Tests\Exception\UnexpectedError;
-use PHPUnit\Framework\TestCase;
+use Tester\Assert;
+use Tester\TestCase;
+
+use function gettype;
+use function is_resource;
+use function strlen;
+
+require __DIR__ . '/../bootstrap.php';
 
 class LazyContentTest extends TestCase
 {
@@ -40,144 +48,188 @@ class LazyContentTest extends TestCase
         unset($this->content);
     }
 
-
-    public function test__toString(): void
+    public function testToString(): void
     {
-        $this->assertEquals(self::TestString, (string)$this->content);
+        Assert::same(self::TestString, (string) $this->content);
     }
 
     public function testToStream(): void
     {
         $stream = fopen('php://memory', 'wb+');
+        try {
+            $this->content->toStream($stream);
 
-        $this->content->toStream($stream);
+            // test stream not rewinded
+            Assert::same('', stream_get_contents($stream));
 
-        // test stream not rewinded
-        $this->assertEmpty(stream_get_contents($stream));
+            // rewind
+            Assert::same(0, fseek($stream, 0));
 
-        // rewind
-        $this->assertEquals(0, fseek($stream, 0));
-
-        // test stream has content
-        $this->assertEquals(self::TestString, stream_get_contents($stream));
+            // test stream has content
+            Assert::same(self::TestString, stream_get_contents($stream));
+        } finally {
+            fclose($stream);
+        }
     }
 
     public function testToStreamUsedContent(): void
     {
         $stream = fopen('php://memory', 'wb+');
+        try {
+            // Just fetch internal stream
+            $this->content->tell();
 
-        // Just fetch internal stream
-        $this->content->tell();
+            $this->content->toStream($stream);
 
-        $this->content->toStream($stream);
+            // test stream not rewinded
+            Assert::same('', stream_get_contents($stream));
 
-        // test stream not rewinded
-        $this->assertEmpty(stream_get_contents($stream));
+            // rewind
+            Assert::same(0, fseek($stream, 0));
 
-        // rewind
-        $this->assertEquals(0, fseek($stream, 0));
-
-        // test stream has content
-        $this->assertEquals(self::TestString, stream_get_contents($stream));
+            // test stream has content
+            Assert::same(self::TestString, stream_get_contents($stream));
+        } finally {
+            fclose($stream);
+        }
     }
 
     public function testToStreamClosedContent(): void
     {
-        $this->expectException(FileContentClosedException::class);
-        $this->expectExceptionMessage(
-            "File's Content is already closed, try to fetch it right after File fetched from Reader."
-        );
-
         $stream = fopen('php://memory', 'wb+');
+        try {
+            $this->content->close();
 
-        $this->content->close();
-
-        $this->content->toStream($stream);
+            Assert::exception(
+                fn() => $this->content->toStream($stream),
+                FileContentClosedException::class,
+                "File's Content is already closed, try to fetch it right after File fetched from Reader.",
+            );
+        } finally {
+            fclose($stream);
+        }
     }
 
     public function testToStreamInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Stream must be a resource");
-
         $stream = 'foo bar';
 
-        /** @noinspection PhpParamsInspection test case */
-        $this->content->toStream($stream);
+        Assert::exception(
+            fn() => $this->content->toStream($stream),
+            InvalidArgumentException::class,
+            "Stream must be a resource",
+        );
     }
 
     public function testToFileUsedContent(): void
     {
-        $tmpDir = sys_get_temp_dir();
-        $tmpNam = tempnam($tmpDir, 'TestLazyContent');
+        $filename = tempnam(sys_get_temp_dir(), 'TestLazyContent');
+        try {
+            $this->content->tell();
+            $this->content->toFile($filename);
+            Assert::true(is_file($filename));
+            Assert::same(self::TestString, file_get_contents($filename));
+        } finally {
+            unlink($filename);
+        }
+    }
 
-        // Just fetch internal stream
-        $this->content->tell();
+    public function testToFileClosedContentPreservesDestination(): void
+    {
+        $filename = tempnam(sys_get_temp_dir(), 'TarClosedContent');
+        try {
+            file_put_contents($filename, 'Keep existing data');
+            $this->content->close();
 
-        $this->content->toFile($tmpNam);
+            Assert::exception(
+                fn() => $this->content->toFile($filename),
+                FileContentClosedException::class,
+            );
+            Assert::same('Keep existing data', file_get_contents($filename));
+        } finally {
+            unlink($filename);
+        }
+    }
 
-        $this->assertFileExists($tmpNam);
-        $this->assertEquals(self::TestString, file_get_contents($tmpNam));
-        unlink($tmpNam);
+    public function testToFileClosesDestinationOnFailure(): void
+    {
+        $filename = tempnam(sys_get_temp_dir(), 'TarFailedExport');
+        $target = null;
+        $failure = new RuntimeException('Export failed');
+        $content = new LazyContent(static function ($stream) use (&$target, $failure): never {
+            $target = $stream;
+            throw $failure;
+        });
+        try {
+            Assert::same($failure, Assert::exception(
+                fn() => $content->toFile($filename),
+                RuntimeException::class,
+                'Export failed',
+            ));
+            Assert::same('resource (closed)', gettype($target));
+        } finally {
+            if (is_resource($target)) {
+                fclose($target);
+            }
+            unlink($filename);
+        }
     }
 
     public function testToFileInvalid(): void
     {
-        // Expect warning
-        $prev = set_error_handler(static function (int $errno, string $errstr) use (&$prev): bool {
-            if (!str_contains($errstr, "Failed to open stream: No such file or directory")) {
-                throw new UnexpectedError($errstr, $errno);
-            }
-            return true;
-        }, E_WARNING);
+        $path = tempnam(sys_get_temp_dir(), 'TarMissing');
+        unlink($path);
+        $filename = $path . '/content.bin';
 
-        $tmpDir = sys_get_temp_dir() . '/__@$non-exists';
-        $tmpNam = sprintf("%s/file_%s.tmp", $tmpDir, random_int(1000, 9999));
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/Unable to open file: \'.+\\/__@\\$non-exists\\/file_\\d+\.tmp\'/');
-        $this->content->toFile($tmpNam);
+        Assert::error(
+            fn() => Assert::exception(
+                fn() => $this->content->toFile($filename),
+                InvalidArgumentException::class,
+                "Unable to open file: '$filename'",
+            ),
+            E_WARNING,
+            '%a%Failed to open stream: No such file or directory',
+        );
     }
 
     public function testIsLoaded(): void
     {
-        $this->assertFalse($this->content->isLoaded());
+        Assert::false($this->content->isLoaded());
 
         // Just fetch internal stream
         $this->content->tell();
 
-        $this->assertTrue($this->content->isLoaded());
+        Assert::true($this->content->isLoaded());
 
         // Just fetch internal stream
         $this->content->close();
 
-        $this->assertFalse($this->content->isLoaded());
+        Assert::false($this->content->isLoaded());
     }
 
     public function testIsClosed(): void
     {
-        $this->assertFalse($this->content->isClosed());
+        Assert::false($this->content->isClosed());
 
         // Just fetch internal stream
         $this->content->tell();
 
-        $this->assertFalse($this->content->isClosed());
+        Assert::false($this->content->isClosed());
 
         // Just fetch internal stream
         $this->content->close();
 
-        $this->assertTrue($this->content->isClosed());
+        Assert::true($this->content->isClosed());
     }
-
 
     public function testClose(): void
     {
-        $this->assertFalse($this->content->isClosed());
+        Assert::false($this->content->isClosed());
 
         // Just fetch internal stream
         $this->content->close();
 
-        $this->assertTrue($this->content->isClosed());
+        Assert::true($this->content->isClosed());
     }
 
     public function testCloseUsed(): void
@@ -185,63 +237,62 @@ class LazyContentTest extends TestCase
         // Just fetch internal stream
         $this->content->tell();
 
-        $this->assertFalse($this->content->isClosed());
+        Assert::false($this->content->isClosed());
 
         // Just fetch internal stream
         $this->content->close();
 
-        $this->assertTrue($this->content->isClosed());
+        Assert::true($this->content->isClosed());
     }
 
     public function testDetach(): void
     {
         $stream = $this->content->detach();
+        try {
+            Assert::true($this->content->isClosed());
 
-        $this->assertTrue($this->content->isClosed());
-
-        $this->assertEquals(self::TestString, stream_get_contents($stream));
-
-        fclose($stream);
+            Assert::same(self::TestString, stream_get_contents($stream));
+        } finally {
+            fclose($stream);
+        }
     }
 
     public function testGetSize(): void
     {
-        // Expect warning
-        set_error_handler(static function (int $errno, string $errstr): bool {
-            if (!preg_match("/^Method \'.+\' not implemented\.$/D", $errstr)) {
-                throw new UnexpectedError($errstr, $errno);
-            }
-            return true;
-        }, E_USER_WARNING);
-
-        $this->assertNull($this->content->getSize());
+        Assert::error(
+            function (): void {
+                Assert::null($this->content->getSize());
+            },
+            E_USER_WARNING,
+            "Method 'JakubBoucek\\Tar\\Parser\\LazyContent::getSize' not implemented.",
+        );
     }
 
     public function testTell(): void
     {
-        $this->assertEquals(0, $this->content->tell());
+        Assert::same(0, $this->content->tell());
 
         $this->content->read(3);
 
-        $this->assertEquals(3, $this->content->tell());
+        Assert::same(3, $this->content->tell());
 
         $this->content->read(1);
 
         // Still 3 - previous read cannot move pointer after EOF
-        $this->assertEquals(3, $this->content->tell());
+        Assert::same(3, $this->content->tell());
     }
 
     public function testEof(): void
     {
         $this->content->getContents();
 
-        $this->assertTrue($this->content->eof());
+        Assert::true($this->content->eof());
     }
 
     public function testIsSeekable(): void
     {
         // Test stream as always seekable
-        $this->assertTrue($this->content->isSeekable());
+        Assert::true($this->content->isSeekable());
     }
 
     public function testSeek(): void
@@ -249,74 +300,97 @@ class LazyContentTest extends TestCase
         // discharge the stream
         $this->content->getContents();
         // check the content is discharged
-        $this->assertEmpty($this->content->getContents());
+        Assert::same('', $this->content->getContents());
 
         $this->content->seek(0);
 
-        $this->assertEquals(self::TestString, $this->content->getContents());
+        Assert::same(self::TestString, $this->content->getContents());
     }
 
     public function testRewind(): void
     {
         // seek to eof
-        $this->assertEquals(self::TestString, $this->content->getContents());
+        Assert::same(self::TestString, $this->content->getContents());
         // test content seeked to end
-        $this->assertEmpty($this->content->getContents());
+        Assert::same('', $this->content->getContents());
 
         $this->content->rewind();
 
         // seek to eof
-        $this->assertEquals(self::TestString, $this->content->getContents());
+        Assert::same(self::TestString, $this->content->getContents());
     }
 
     public function testIsWritable(): void
     {
-        $this->assertFalse($this->content->isWritable());
+        Assert::false($this->content->isWritable());
     }
 
     public function testWrite(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Cannot write to a non-writable stream');
-
-        $this->content->write('bar');
+        Assert::exception(
+            fn() => $this->content->write('bar'),
+            RuntimeException::class,
+            'Cannot write to a non-writable stream',
+        );
     }
 
     public function testIsReadable(): void
     {
-        $this->assertTrue($this->content->isReadable());
+        Assert::true($this->content->isReadable());
     }
 
     public function testRead(): void
     {
         $len = strlen(self::TestString);
 
-        $this->assertEquals(self::TestString, $this->content->read($len));
+        Assert::same(self::TestString, $this->content->read($len));
     }
 
     public function testGetMetadata(): void
     {
-        $this->assertIsArray($this->content->getMetadata());
+        Assert::type('array', $this->content->getMetadata());
     }
 
     public function testGetMetadataItem(): void
     {
-        $this->assertEquals('MEMORY', $this->content->getMetadata('stream_type'));
+        Assert::same('MEMORY', $this->content->getMetadata('stream_type'));
+    }
+
+    public function testGetMetadataNullKey(): void
+    {
+        Assert::same('MEMORY', $this->content->getMetadata()['stream_type']);
+    }
+
+    public function testGetMetadataEmptyKey(): void
+    {
+        Assert::null($this->content->getMetadata(''));
+    }
+
+    public function testGetMetadataZeroKey(): void
+    {
+        Assert::null($this->content->getMetadata('0'));
+    }
+
+    public function testGetMetadataMissingKey(): void
+    {
+        Assert::null($this->content->getMetadata('missing'));
     }
 
     public function testGetContents(): void
     {
-        $this->assertEquals(self::TestString, $this->content->getContents());
+        Assert::same(self::TestString, $this->content->getContents());
     }
 
     public function testGetStreamClosed(): void
     {
-        $this->expectException(FileContentClosedException::class);
-        $this->expectExceptionMessage(
-            "File's Content is already closed, try to fetch it right after File fetched from Reader."
-        );
-
         $this->content->close();
-        $this->content->getContents();
+
+        Assert::exception(
+            fn() => $this->content->getContents(),
+            FileContentClosedException::class,
+            "File's Content is already closed, try to fetch it right after File fetched from Reader.",
+        );
     }
 }
+
+new LazyContentTest()->run();

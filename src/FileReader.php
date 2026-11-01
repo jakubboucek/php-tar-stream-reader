@@ -6,20 +6,18 @@ namespace JakubBoucek\Tar;
 
 use Iterator;
 use IteratorAggregate;
-use JakubBoucek\Tar\FileHandler;
 
 /**
  * @implements IteratorAggregate<File>
  */
 class FileReader implements IteratorAggregate
 {
-    private string $filename;
     private FileHandler\FileHandler $handler;
 
-    public function __construct(string $filename, ?FileHandler\FileHandler $handler = null)
-    {
-        $this->filename = $filename;
-
+    public function __construct(
+        private readonly string $filename,
+        ?FileHandler\FileHandler $handler = null,
+    ) {
         if (!$handler) {
             $handler = match (true) {
                 FileHandler\Gzip::match($filename) => new FileHandler\Gzip(),
@@ -37,7 +35,10 @@ class FileReader implements IteratorAggregate
     public function getIterator(): Iterator
     {
         $stream = $this->handler->open($this->filename);
-        yield from new StreamReader($stream);
-        $this->handler->close($stream);
+        try {
+            yield from new StreamReader($stream);
+        } finally {
+            $this->handler->close($stream);
+        }
     }
 }
