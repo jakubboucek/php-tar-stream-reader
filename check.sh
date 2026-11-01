@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 {test|phpstan|style|style:fix}" >&2
+    echo "Usage: $0 {test|phpstan|dresscode|dresscode:fix}" >&2
     exit 2
 fi
 
 case "$1" in
-    test|phpstan|style|style:fix)
+    test|phpstan|dresscode|dresscode:fix)
         ;;
     *)
-        echo "Usage: $0 {test|phpstan|style|style:fix}" >&2
+        echo "Usage: $0 {test|phpstan|dresscode|dresscode:fix}" >&2
         exit 2
         ;;
 esac

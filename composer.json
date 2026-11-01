@@ -37,8 +37,8 @@
     },
     "scripts": {
         "phpstan": "phpstan analyse src --level 7",
-        "style": "dresscode check",
-        "style:fix": "dresscode fix",
+        "dresscode": "dresscode check",
+        "dresscode:fix": "dresscode fix",
         "test": "tester tests -s"
     }
 }
