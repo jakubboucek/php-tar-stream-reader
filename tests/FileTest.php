@@ -7,7 +7,8 @@ declare(strict_types=1);
 namespace JakubBoucek\Tar\Tests;
 
 use JakubBoucek\Tar\File;
-use JakubBoucek\Tar\Tests\Doubles\HeaderStub;
+use JakubBoucek\Tar\EntryType;
+use JakubBoucek\Tar\Parser\Header;
 use JakubBoucek\Tar\Parser\LazyContent;
 use Tester\Assert;
 use Tester\TestCase;
@@ -16,96 +17,45 @@ require __DIR__ . '/bootstrap.php';
 
 class FileTest extends TestCase
 {
-    private const TestName = 'bar';
-    private const TestSize = 123456;
-    private const TestType = '5';
-
-    public function testToString(): void
+    public function testMetadataDoesNotLoadContent(): void
     {
-        $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
-        $stream = new LazyContent(static function (): never {
+        $content = new LazyContent(static function (): never {
             Assert::fail('File metadata access must not load content.');
         });
-
-        $file = new File($header, $stream);
-
-        Assert::same(self::TestName, (string) $file);
+        $file = new File(new Header('bar', 123456, EntryType::Directory), $content);
+        Assert::same('bar', (string) $file);
+        Assert::same('bar', $file->getName());
+        Assert::same(123456, $file->getSize());
+        Assert::same('5', $file->getType());
+        Assert::same(EntryType::Directory, $file->getTypeEnum());
+        Assert::same($content, $file->getContent());
     }
 
-    public function testGetName(): void
+    public function testClassificationAndOriginalTypeByte(): void
     {
-        $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
-        $stream = new LazyContent(static function (): never {
-            Assert::fail('File metadata access must not load content.');
-        });
-
-        $file = new File($header, $stream);
-
-        Assert::same(self::TestName, $file->getName());
-    }
-
-    public function testGetType(): void
-    {
-        $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
-        $stream = new LazyContent(static function (): never {
-            Assert::fail('File metadata access must not load content.');
-        });
-
-        $file = new File($header, $stream);
-
-        Assert::same(self::TestType, $file->getType());
-    }
-
-    public function testIsFile(): void
-    {
-        $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
-        $stream = new LazyContent(static function (): never {
-            Assert::fail('File metadata access must not load content.');
-        });
-
-        $file = new File($header, $stream);
-
-        Assert::true($file->isFile());
-        $header->regular = false;
-        Assert::false($file->isFile());
-    }
-
-    public function testIsDir(): void
-    {
-        $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
-        $stream = new LazyContent(static function (): never {
-            Assert::fail('File metadata access must not load content.');
-        });
-
-        $file = new File($header, $stream);
-
-        Assert::true($file->isDir());
-        $header->directory = false;
-        Assert::false($file->isDir());
-    }
-
-    public function testGetSize(): void
-    {
-        $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
-        $stream = new LazyContent(static function (): never {
-            Assert::fail('File metadata access must not load content.');
-        });
-
-        $file = new File($header, $stream);
-
-        Assert::same(self::TestSize, $file->getSize());
-    }
-
-    public function testGetContent(): void
-    {
-        $header = new HeaderStub(self::TestName, self::TestSize, self::TestType);
-        $stream = new LazyContent(static function (): never {
-            Assert::fail('File metadata access must not load content.');
-        });
-
-        $file = new File($header, $stream);
-
-        Assert::same($stream, $file->getContent());
+        $cases = [
+            ['0', EntryType::RegularFile, true, false],
+            ["\0", EntryType::ARegularFile, true, false],
+            ['1', EntryType::HardLink, false, false],
+            ['2', EntryType::SymbolicLink, false, false],
+            ['3', EntryType::CharacterDevice, false, false],
+            ['4', EntryType::BlockDevice, false, false],
+            ['5', EntryType::Directory, false, true],
+            ['6', EntryType::Fifo, false, false],
+            ['7', EntryType::ContiguousFile, false, false],
+            ['x', EntryType::PaxExtendedHeader, false, false],
+            ['g', EntryType::PaxGlobalHeader, false, false],
+        ];
+        foreach ($cases as [$flag, $type, $isFile, $isDir]) {
+            $content = new LazyContent(static function (): never {
+                Assert::fail('File metadata access must not load content.');
+            });
+            $file = new File(new Header('entry', 0, $type), $content);
+            Assert::same($flag, $file->getType());
+            Assert::same($type, $file->getTypeEnum());
+            Assert::same($isFile, $file->isFile());
+            Assert::same($isDir, $file->isDir());
+        }
     }
 }
 

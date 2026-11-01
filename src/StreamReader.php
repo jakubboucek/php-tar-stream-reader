@@ -11,7 +11,10 @@ use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 use JakubBoucek\Tar\Exception\RuntimeException;
 use JakubBoucek\Tar\Parser\Header;
+use JakubBoucek\Tar\Parser\TarHeaderParser;
 use JakubBoucek\Tar\Parser\LazyContent;
+use JakubBoucek\Tar\Parser\PaxHeader;
+use JakubBoucek\Tar\Exception\NotImplementedException;
 use JakubBoucek\Tar\Parser\Usage;
 
 use function is_resource;
@@ -45,25 +48,16 @@ class StreamReader implements IteratorAggregate
     {
         while (!feof($this->stream)) {
             try {
-                $header = $this->readHeader();
+                $header = $this->readEntryHeader();
             } catch (EofException) {
                 return;
             }
 
             $blockStart = ftell($this->stream);
 
-            if (!$header->isValid()) {
-                throw new InvalidArchiveFormatException(
-                    sprintf(
-                        'Invalid TAR archive format: Invalid Tar header format: at %s. bytes',
-                        $blockStart,
-                    ),
-                );
-            }
-
             $usage = new Usage();
 
-            $contentSize = $header->getSize();
+            $contentSize = $header->size;
             $contentPadding = ($contentSize % 512) === 0 ? 0 : 512 - ($contentSize % 512);
 
             // Closure to lazy read, prevents backwards seek or repeated reads of discharged content
@@ -130,7 +124,8 @@ class StreamReader implements IteratorAggregate
                 $usage->use();
                 if ($contentSize) {
                     // Skip unused content
-                    $this->discardBytes($contentSize + $contentPadding);
+                    $this->discardBytes($contentSize);
+                    $this->discardBytes($contentPadding);
                 }
             }
         }
@@ -162,7 +157,51 @@ class StreamReader implements IteratorAggregate
         }
     }
 
-    private function readHeader(): Header
+    private function readEntryHeader(): Header
+    {
+        $metadata = [];
+        $pendingLocal = false;
+        while (true) {
+            try {
+                $rawHeader = $this->readHeader($pendingLocal);
+            } catch (EofException $exception) {
+                if ($pendingLocal) {
+                    throw new InvalidArchiveFormatException('Missing file after local PAX header.', 0, $exception);
+                }
+                throw $exception;
+            }
+            $header = TarHeaderParser::parse($rawHeader, $metadata);
+
+            if (!$header->type->isPax()) {
+                return $header;
+            }
+
+            // PAX processing
+
+            $size = $header->size;
+            if ($size > PaxHeader::MaxPayloadSize) {
+                throw new NotImplementedException('PAX payloads larger than 1 MiB are not supported.');
+            }
+            $payload = '';
+            $remaining = $size;
+            while ($remaining > 0) {
+                $chunk = fread($this->stream, min(8192, $remaining));
+                if ($chunk === false || $chunk === '') {
+                    throw new InvalidArchiveFormatException('Unexpected end of PAX payload.');
+                }
+                $payload .= $chunk;
+                $remaining -= strlen($chunk);
+            }
+            $values = PaxHeader::parse($payload, $header->type === EntryType::PaxGlobalHeader);
+            $this->discardBytes((512 - ($size % 512)) % 512);
+            if ($header->type === EntryType::PaxExtendedHeader) {
+                $metadata = array_replace($metadata, $values);
+                $pendingLocal = true;
+            }
+        }
+    }
+
+    private function readHeader(bool $pendingLocal = false): string
     {
         do {
             $header = fread($this->stream, 512);
@@ -179,10 +218,15 @@ class StreamReader implements IteratorAggregate
                     ),
                 );
             }
+            if ($pendingLocal && self::isNullFilled($header)) {
+                throw new InvalidArchiveFormatException(
+                    'Missing file after local PAX header.',
+                );
+            }
         } while (self::isNullFilled($header));
         // ↑↑↑ TAR format inserts few blocks of nulls to EOF - just skip it
 
-        return new Header($header);
+        return $header;
     }
 
     private static function isNullFilled(string $string): bool

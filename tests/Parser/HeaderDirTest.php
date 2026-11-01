@@ -21,37 +21,32 @@ class HeaderDirTest extends TestCase
         $source = fopen(__DIR__ . '/../assets/dir.tar', 'rb');
         $header = fread($source, 512);
         fclose($source);
-        $this->header = new Header($header);
-    }
-
-    public function testIsValid(): void
-    {
-        Assert::true($this->header->isValid());
+        $this->header = Header::fromTarString($header);
     }
 
     public function testIsDir(): void
     {
-        Assert::true($this->header->isDir());
+        Assert::true($this->header->type->isDir());
     }
 
     public function testIsFile(): void
     {
-        Assert::false($this->header->isFile());
+        Assert::false($this->header->type->isFile());
     }
 
     public function testGetSize(): void
     {
-        Assert::same(0, $this->header->getSize());
+        Assert::same(0, $this->header->size);
     }
 
     public function testGetName(): void
     {
-        Assert::same('some-dir/', $this->header->getName());
+        Assert::same('some-dir/', $this->header->name);
     }
 
     public function testGetType(): void
     {
-        $type = $this->header->getType();
+        $type = $this->header->type->value;
         Assert::same('5', $type);
     }
 }

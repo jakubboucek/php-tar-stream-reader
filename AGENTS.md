@@ -8,6 +8,7 @@
 - Preserve PHP 8.4 compatibility (`composer.json` requires `^8.4`); CI tests PHP 8.4–8.6. Use strict types and the DressCode `perCs` preset (PER Coding Style 3.1), with PascalCase constants and multiline promoted parameters as configured in `dresscode.neon`. All six additional DressCode sets are enabled; review API and behavior changes produced by automatic fixes. Avoid unrelated formatting changes.
 - Keep `nameResolution: certain` accurate when adding namespace-level functions or constants. PHPStan inference is enabled through `typeAnalysis: phpstan`; run DressCode with `--no-cache` for final verification to account for cross-file and PHPStan configuration changes.
 - Prefer native types where PHP 8.4 supports them; retain PHPDoc for resources and collection types.
+- Do not add `final` to classes, including test doubles. Testability must not determine production inheritance restrictions. Use explicit API documentation and `@internal` to describe intended usage; `final` is not an API visibility boundary.
 
 ## Project map
 
@@ -16,9 +17,10 @@ This is `jakubboucek/tar-stream-reader`, a standalone, read-only PHP library for
 - [README.md](README.md): installation and introductory usage.
 - [docs/architecture.md](docs/architecture.md): readers, content lifecycle and implemented format boundaries.
 - [docs/development.md](docs/development.md): dependencies, checks, fixtures and CI.
+- [docs/pax-design.md](docs/pax-design.md): PAX support boundaries, fixture generation and deferred integration ideas.
 - `src/FileReader.php` and `src/StreamReader.php`: filename and resource entry points.
 - `src/File.php`: entry metadata and content access.
-- `src/Parser/`: header parsing, lazy content and single-use tracking.
+- `src/Parser/`: readonly `Header` metadata, eager decoding in `TarHeaderParser`, lazy content and single-use tracking. `Header::fromTarString(string)` accepts no PAX parameters; the reader passes PAX overrides directly to the parser. Unknown entry types are rejected.
 - `src/FileHandler/`: plain, gzip and bzip2 resource handling.
 - `tests/`: Nette Tester tests and committed binary fixtures.
 
@@ -28,7 +30,7 @@ This is `jakubboucek/tar-stream-reader`, a standalone, read-only PHP library for
 - Keep content lazy and direct exports bounded in memory. Do not introduce whole-archive buffering or require backward seeking on the archive stream.
 - Consume or materialize entry content before advancing the iterator. Preserve closure of skipped content and the distinction between loaded content and direct export.
 - Compression extensions are optional at runtime. Keep explicit handler selection and extension availability checks.
-- PAX metadata is not supported. Do not imply complete TAR compliance or arbitrary non-seekable stream support; consult the architecture guide before changing parsing.
+- PAX support is limited to local `path` and `size`. Reject these keys in global headers; preserve raw name bytes and the 1 MiB per-extension limit. Do not imply complete TAR compliance or arbitrary non-seekable stream support; consult the architecture guide before changing parsing.
 - Tests use `Tester\TestCase`, a file-level `@testCase` annotation, `tests/bootstrap.php` and an explicit `run()` call. Assert expected warnings and exceptions; do not suppress unexpected errors. Keep temporary files unique and clean up resources in `finally`.
 - Cover behavior changes with focused Nette Tester regression tests, especially archive padding, content lifetime and error paths.
 - Run PHP checks in `jakubboucek/lamp-devstack-php` Docker images. Resolve dependencies separately for each PHP version; checks can run in the main workspace, reinstalling dependencies as needed. See the development guide.

@@ -8,6 +8,7 @@ Reader for TAR and TAR+GZip Archives, optimized for read huge size archives, eff
 - Support **GZipped** and **BZipped** archives
 - Iterate over Archive content
 - Get **name**, **size** and **type** of each file
+- Apply local PAX names and sizes, including entries larger than the USTAR size limit
 - Recognize Directory files type
 - Recognize Regular files type
 - Get **content** of files
@@ -62,7 +63,8 @@ foreach (new Tar\StreamReader($stream) as $file) {
 - For large entries, call `toStream()` or `toFile()` before any content reads to export directly. Other stream operations can materialize the entire entry into temporary storage; casting content to a string loads it into PHP memory.
 - Export consumes the content object. If content is already materialized, export starts at its current position; rewind it first to export the whole entry.
 - Skipped content and padding are read and discarded in bounded chunks so truncated entries are detected even during metadata-only traversal. Arbitrary non-seekable streams are not guaranteed to work.
-- TAR support is limited: PAX metadata, USTAR name prefixes and GNU long-name records are not applied, and header checksums are not validated. Archive entry names are untrusted metadata; validate them before using them as export paths.
+- Local PAX `path` and `size` override entry metadata. PAX headers are consumed internally. Global `path`/`size`, deletion of local `path`/`size`, and PAX payloads larger than 1 MiB raise `Exception\NotImplementedException`. Other PAX metadata is ignored; names retain their original bytes without charset conversion.
+- TAR support is limited: USTAR name prefixes, GNU long-name records and GNU sparse formats are not implemented, and header checksums are not validated. Archive entry names are untrusted metadata; validate them before using them as export paths.
 
 ## FAQ
 
@@ -83,7 +85,7 @@ No, TAR Archive is stream-based format, it does not support search, you must alw
 Here are two scopes of this question: **Archive size** or **Size of files in Archive**
 
 - **Archive size:** sequential reading avoids loading the whole archive into memory.
-- **Entry size:** direct export through `toFile()` or `toStream()` avoids creating a whole-entry PHP string. Actual limits still depend on supported TAR size encoding, the PHP runtime and available storage. PAX size overrides are not supported.
+- **Entry size:** direct export through `toFile()` or `toStream()` avoids creating a whole-entry PHP string. Actual limits still depend on supported TAR size encoding, the PHP runtime and available storage. Local PAX decimal sizes are supported up to `PHP_INT_MAX`; GNU base-256 sizes are not supported.
 
 ## API overview
 
@@ -93,7 +95,8 @@ All public classes use the `JakubBoucek\Tar` namespace:
 | --- | --- |
 | `FileReader` | Iterate over an archive by filename, with automatic compression handler selection or an explicit handler. |
 | `StreamReader` | Iterate over an open resource containing decompressed TAR bytes. The caller owns and closes the resource. |
-| `File` | Read entry metadata through `getName()`, `getSize()`, `getType()`, `isFile()` and `isDir()`. |
+| `File` | Read entry metadata through `getName()`, `getSize()`, `getTypeEnum()`, `isFile()` and `isDir()`. `getType()` preserves the original flag byte. |
+| `EntryType` | Recognized TAR types returned by `getTypeEnum()`; unknown flags are rejected while parsing; the legacy NUL flag maps to `ARegularFile`. Both regular-file cases satisfy `EntryType::isFile()`. |
 | `Parser\LightStreamInterface` | Access entry content through `File::getContent()`. Extends PSR-7 `StreamInterface` with `toStream()` and `toFile()`. |
 
 ## Documentation and source
