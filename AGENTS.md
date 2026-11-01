@@ -16,6 +16,7 @@ This is `jakubboucek/tar-stream-reader`, a standalone, read-only PHP library for
 - [README.md](README.md): installation and introductory usage.
 - [docs/architecture.md](docs/architecture.md): readers, content lifecycle and implemented format boundaries.
 - [docs/development.md](docs/development.md): dependencies, checks, fixtures and CI.
+- [docs/pax-design.md](docs/pax-design.md): format constraints and verification cases for future PAX support.
 - `src/FileReader.php` and `src/StreamReader.php`: filename and resource entry points.
 - `src/File.php`: entry metadata and content access.
 - `src/Parser/`: header parsing, lazy content and single-use tracking.
