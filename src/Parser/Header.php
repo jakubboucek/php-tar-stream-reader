@@ -40,11 +40,19 @@ class Header
 {
     public function __construct(
         private readonly string $content,
+        private readonly ?string $paxPath = null,
+        private readonly ?int $paxSize = null,
     ) {
         $length = strlen($content);
         if ($length !== 512) {
             throw new InvalidArgumentException(sprintf('Tar header must be 512 bytes length, %d bytes got', $length));
         }
+    }
+
+    /** @internal */
+    public function withPax(?string $path, ?int $size): self
+    {
+        return new self($this->content, $path, $size);
     }
 
     public function isValid(): bool
@@ -54,12 +62,20 @@ class Header
 
     public function getName(): string
     {
+        if ($this->paxPath !== null) {
+            return $this->paxPath;
+        }
+
         $str = substr($this->content, 0, 100);
         return rtrim($str, "\0");
     }
 
     public function getSize(): int
     {
+        if ($this->paxSize !== null) {
+            return $this->paxSize;
+        }
+
         $str = rtrim(substr($this->content, 124, 12));
         if (preg_match('/^[0-7]+$/D', $str) !== 1) {
             throw new InvalidArchiveFormatException(
