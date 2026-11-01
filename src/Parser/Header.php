@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JakubBoucek\Tar\Parser;
 
+use JakubBoucek\Tar\EntryType;
 use JakubBoucek\Tar\Exception\InvalidArchiveFormatException;
 use JakubBoucek\Tar\Exception\InvalidArgumentException;
 
@@ -38,6 +39,17 @@ use function strlen;
 
 class Header
 {
+    private const int NameFieldOffset = 0;
+    private const int NameFieldLength = 100;
+
+    private const int SizeFieldOffset = 124;
+    private const int SizeFieldLength = 12;
+
+    private const int TypeFieldOffset = 156;
+
+    private const int MagicFieldOffset = 257;
+    private const int MagicFieldLength = 6;
+
     public function __construct(
         private readonly string $content,
         private readonly ?string $paxPath = null,
@@ -66,7 +78,7 @@ class Header
             return $this->paxPath;
         }
 
-        $str = substr($this->content, 0, 100);
+        $str = substr($this->content, self::NameFieldOffset, self::NameFieldLength);
         return rtrim($str, "\0");
     }
 
@@ -76,7 +88,7 @@ class Header
             return $this->paxSize;
         }
 
-        $str = rtrim(substr($this->content, 124, 12));
+        $str = rtrim(substr($this->content, self::SizeFieldOffset, self::SizeFieldLength));
         if (preg_match('/^[0-7]+$/D', $str) !== 1) {
             throw new InvalidArchiveFormatException(
                 sprintf(
@@ -89,38 +101,30 @@ class Header
         return (int) octdec($str);
     }
 
-    /*
-     * Values used in typeflag field
-     * #define REGTYPE  '0'            // regular file
-     * #define AREGTYPE '\0'           // regular file
-     * #define LNKTYPE  '1'            // link
-     * #define SYMTYPE  '2'            // reserved
-     * #define CHRTYPE  '3'            // character special
-     * #define BLKTYPE  '4'            // block special
-     * #define DIRTYPE  '5'            // directory
-     * #define FIFOTYPE '6'            // FIFO special
-     * #define CONTTYPE '7'            // reserved
-     * #define XHDTYPE  'x'            // Extended header referring to the next file in the archive
-     * #define XGLTYPE  'g'            // Global extended header
-     */
-
     public function getType(): string
     {
-        return $this->content[156];
+        return $this->content[self::TypeFieldOffset];
+    }
+
+    /** Preferred typed access; unknown flags return null, and legacy NUL means RegularFile. */
+    public function getTypeEnum(): ?EntryType
+    {
+        $type = $this->getType();
+        return $type === "\0" ? EntryType::RegularFile : EntryType::tryFrom($type);
     }
 
     public function isFile(): bool
     {
-        return $this->getType() === '0' || $this->getType() === "\0";
+        return $this->getTypeEnum() === EntryType::RegularFile;
     }
 
     public function isDir(): bool
     {
-        return $this->getType() === '5';
+        return $this->getTypeEnum() === EntryType::Directory;
     }
 
     protected function getMagic(): string
     {
-        return rtrim(substr($this->content, 257, 6));
+        return rtrim(substr($this->content, self::MagicFieldOffset, self::MagicFieldLength));
     }
 }

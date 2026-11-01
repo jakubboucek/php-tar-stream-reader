@@ -172,8 +172,8 @@ class StreamReader implements IteratorAggregate
             if (!$header->isValid()) {
                 throw new InvalidArchiveFormatException('Invalid TAR archive format: Invalid Tar header format.');
             }
-            $type = $header->getType();
-            if ($type !== 'x' && $type !== 'g') {
+            $type = $header->getTypeEnum();
+            if ($type !== EntryType::PaxExtendedHeader && $type !== EntryType::PaxGlobalHeader) {
                 return $header->withPax($metadata['path'] ?? null, $metadata['size'] ?? null);
             }
 
@@ -191,9 +191,9 @@ class StreamReader implements IteratorAggregate
                 $payload .= $chunk;
                 $remaining -= strlen($chunk);
             }
-            $values = PaxHeader::parse($payload, $type === 'g');
+            $values = PaxHeader::parse($payload, $type === EntryType::PaxGlobalHeader);
             $this->discardBytes((512 - ($size % 512)) % 512);
-            if ($type === 'x') {
+            if ($type === EntryType::PaxExtendedHeader) {
                 $metadata = array_replace($metadata, $values);
                 $pendingLocal = true;
             }

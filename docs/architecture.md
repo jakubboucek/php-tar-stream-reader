@@ -8,7 +8,7 @@ Each iteration of `FileReader` opens a resource and delegates to `StreamReader`.
 
 `StreamReader` accepts a resource containing decompressed TAR bytes. It does not rewind or close the caller's resource. Its generator reads 512-byte headers and yields `File` objects. Empty reads end iteration; all-zero blocks are skipped rather than treated as a mandatory two-block end marker, except that a pending local PAX header requires a following entry before any end marker. Short headers raise `InvalidArchiveFormatException`.
 
-`File` is a readonly class: its header and content references cannot be reassigned, but the referenced content still has a mutable stream lifecycle. Subclasses must also be readonly. It delegates name, size and type access to `Header`. Regular file types are `0` and the NUL byte; directory type is `5`. Other type flags remain available through `getType()`. Casting a `File` to string returns its name, not its content.
+`File` is a readonly class: its header and content references cannot be reassigned, but the referenced content still has a mutable stream lifecycle. Subclasses must also be readonly. It delegates name, size and type access to `Header`. Regular file types are `0` and the NUL byte; directory type is `5`. Prefer `getTypeEnum()` on `File` or `Header` for recognized types (`EntryType`). It maps both `0` and NUL to `RegularFile` and returns `null` for unknown flags. `getType()` preserves the original flag byte, including unknown/vendor types. Recognizing an enum case does not imply support for that format feature. Casting a `File` to string returns its name, not its content.
 
 ## Content lifecycle
 

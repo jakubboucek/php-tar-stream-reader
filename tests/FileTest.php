@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace JakubBoucek\Tar\Tests;
 
 use JakubBoucek\Tar\File;
+use JakubBoucek\Tar\EntryType;
 use JakubBoucek\Tar\Tests\Doubles\HeaderStub;
 use JakubBoucek\Tar\Parser\LazyContent;
 use Tester\Assert;
@@ -54,6 +55,18 @@ class FileTest extends TestCase
         $file = new File($header, $stream);
 
         Assert::same(self::TestType, $file->getType());
+    }
+
+    public function testGetTypeEnum(): void
+    {
+        $stream = new LazyContent(static function (): never {
+            Assert::fail('File metadata access must not load content.');
+        });
+        $file = new File(new HeaderStub(self::TestName, self::TestSize, '5'), $stream);
+        Assert::same(EntryType::Directory, $file->getTypeEnum());
+        $unknown = new File(new HeaderStub(self::TestName, self::TestSize, 'Z'), $stream);
+        Assert::null($unknown->getTypeEnum());
+        Assert::same('Z', $unknown->getType());
     }
 
     public function testIsFile(): void
